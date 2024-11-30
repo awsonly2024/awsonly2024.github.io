@@ -360,7 +360,7 @@ function registerUsername() {
 } */
 
 // [jsflux] 내 화상화면 시작
-async function publishOwnFeed2(useAudio) {
+function publishOwnFeed2(useAudio) {
 
 	sfutest.createOffer(
 	{
