@@ -360,7 +360,7 @@ function registerUsername() {
 } */
 
 // [jsflux] 내 화상화면 시작
-function publishOwnFeed2(useAudio) {
+function publishOwnFeed(useAudio) {
 
 	sfutest.createOffer(
 	{
@@ -386,7 +386,7 @@ function publishOwnFeed2(useAudio) {
 }
 
 //화면 공유
-async function publishOwnFeed(useAudio) {
+async function publishOwnFeed2(useAudio) {
 	// Publish our stream
 	alert(publishOwnFeed)
 	//$('#publish').attr('disabled', true).unbind('click');
