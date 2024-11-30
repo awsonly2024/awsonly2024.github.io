@@ -2,6 +2,16 @@ var version = 1.2;
 var server = null;
 server = "https://janus.jsflux.co.kr/janus"; //jsflux janus server url
 
+//-------------- url에서 값 가져오기
+var urlParams = new URLSearchParams(window.location.search);
+
+var userId = urlParams.get('username');
+var room = urlParams.get('room');
+var createRoom = urlParams.get('createRoom');
+
+alert(userId+" " + room + " " + createRoom);
+//-------------- * *
+
 var janus = null;
 var sfutest = null;
 var opaqueId = "videoroomtest-"+Janus.randomString(12);
@@ -21,30 +31,24 @@ var doSimulcast = (getQueryStringValue("simulcast") === "yes" || getQueryStringV
 var doSimulcast2 = (getQueryStringValue("simulcast2") === "yes" || getQueryStringValue("simulcast2") === "true");
 var subscriber_mode = (getQueryStringValue("subscriber-mode") === "yes" || getQueryStringValue("subscriber-mode") === "true");
 
-//-------------- url에서 값 가져오기
-var urlParams = new URLSearchParams(window.location.search);
-
-var username = urlParams.get('username');
-var room = urlParams.get('room');
-
-alert("username"+ username + " ,room:" + room);
-//-------------- * *
-//방 조인
-var register = { "request": "join", "room": parseInt(room), "ptype": "publisher", "display": username }; 
-
-
 $(document).ready(function() {
 	// Initialize the library (all console debuggers enabled)
 	Janus.init({debug: "all", callback: function() {
 		// Use a button to start the demo
+		$('#start').one('click', function() {
 
+			$(this).attr('disabled', true).unbind('click');
+			// Make sure the browser supports WebRTC
+			if(!Janus.isWebrtcSupported()) {
+				bootbox.alert("No WebRTC support... ");
+				return;
+			}
 			// Create session
 			janus = new Janus(
 				{
 					server: server,
 					success: function() {
 						// Attach to VideoRoom plugin
-
 						janus.attach(
 							{
 								/*
@@ -69,7 +73,7 @@ $(document).ready(function() {
 									});
 									//대화방 참여 버튼을 누르면 대화방은 만들어진다
 									$('#register').click(registerUsername);
-									registerUsername();
+
                     		Janus.log("Room List > ");
                     		//roomList();
 								}  ,
@@ -114,7 +118,7 @@ $(document).ready(function() {
 								*/
 								onmessage: function(msg, jsep) {
 									
-									console.log(msg)
+									alert("msg:"+msg+" ,jsep:"+jsep);
 
 									Janus.debug(" ::: Got a message (publisher) :::", msg);
 									var event = msg["videoroom"];
@@ -323,19 +327,114 @@ $(document).ready(function() {
 						window.location.reload();
 					}
 				});
-		
+		});
 	}});
 });
 
+/* function checkEnter(field, event) {
+	var theCode = event.keyCode ? event.keyCode : event.which ? event.which : event.charCode;
+	if(theCode == 13) {
+		registerUsername();
+		return false;
+	} else {
+		return true;
+	}
+} */
 
 // [jsflux] 방생성 및 조인
 function registerUsername() {
-	console.log(register)
-	sfutest.send({
-		"message": register, success: () => {}
-		});
-	}
+	if($('#roomname').length === 0) {
+		// Create fields to register
+        $('#register').click(registerUsername);
+		$('#roomname').focus();
+    } else if($('#username').length === 0) {
+		// Create fields to register
+		$('#register').click(registerUsername);
+		$('#username').focus();
+	} else {
+		// Try a registration
+		$('#username').attr('disabled', true);
+		$('#register').attr('disabled', true).unbind('click');
 
+        var roomname = $('#roomname').val();
+		if(roomname === "") {
+			$('#room')
+				.removeClass().addClass('label label-warning')
+				.html("채팅방 아이디(번호)를 넣으세요. ex) 1234");
+			$('#roomname').removeAttr('disabled');
+			$('#register').removeAttr('disabled').click(registerUsername);
+			return;
+		}
+		if(/[^0-9]/.test(roomname)) {
+			$('#room')
+				.removeClass().addClass('label label-warning')
+				.html('채팅방 아이디는 숫자만 가능합니다.');
+			$('#roomname').removeAttr('disabled').val("");
+			$('#register').removeAttr('disabled').click(registerUsername);
+			return;
+		}
+
+		var username = $('#username').val();
+		if(username === "") {
+			$('#you')
+				.removeClass().addClass('label label-warning')
+				.html("채팅방에서 사용할 닉네임을 입력해주세요.");
+			$('#username').removeAttr('disabled');
+			$('#register').removeAttr('disabled').click(registerUsername);
+			return;
+		}
+		if(/[^a-zA-Z0-9]/.test(username)) {
+			$('#you')
+				.removeClass().addClass('label label-warning')
+				.html('닉네임은 영문만 가능합니다.');
+			$('#username').removeAttr('disabled').val("");
+			$('#register').removeAttr('disabled').click(registerUsername);
+			return;
+		}
+
+        alert("username:" + username + " ,roomname:"+roomname);
+        myroom = Number(roomname); //사용자 입력 방 아이디
+
+        var createRoom = {
+            request : "create",
+            room : myroom,
+            permanent : false,
+            record: false,
+            publishers: 6,
+            bitrate : 128000,
+            fir_freq : 10,
+            ptype: "publisher",
+            description: "test",
+            is_private: false
+        }
+
+        sfutest.send({ message: createRoom, success:function(result){
+            var event = result["videoroom"]; Janus.debug("Event: " + event);
+            if(event != undefined && event != null) {
+                // Our own screen sharing session has been created, join it
+                console.log("Room Create Result: " + result);
+                console.log("error: " + result["error"]);
+                room = result["room"];
+                console.log("Screen sharing session created: " + room);
+
+                var username = $('#username').val(); //myusername = randomString(12);
+                var register = { "request": "join", "room": myroom, "ptype": "publisher", "display": username };
+                myusername = username;
+                sfutest.send({"message": register});
+
+					 /*
+					 사용자의 방 참여를 요청합니다.
+					register 객체:
+					request: "join": 방에 참여 요청.
+					room: 생성된 방 번호를 지정.
+					ptype: "publisher": 이 클라이언트는 방에 미디어를 송출하는 역할을 담당.
+					display: 방 참여 시 표시될 사용자 이름.
+					요청이 성공하면 사용자는 방에 **퍼블리셔(방송 송출자)**로 참여합니다.
+					 */
+            }
+        }});
+	}
+}
 
 // [jsflux] 방 참여자
 /* function participantsList(room){
@@ -360,54 +459,32 @@ function registerUsername() {
 } */
 
 // [jsflux] 내 화상화면 시작
-async function publishOwnFeed2(useAudio) {
-
-	sfutest.createOffer(
-	{
-		media: { audioRecv: false, videoRecv: false, audioSend: useAudio, videoSend: true },	
-		simulcast: doSimulcast,
-		simulcast2: doSimulcast2,
-		success: function(jsep) {
-			Janus.debug("Got publisher SDP!", jsep);
-			var publish = { request: "configure", audio: useAudio, video: true };
-			
-			sfutest.send({ message: publish, jsep: jsep });
-		},
-		error: function(error) {
-			Janus.error("WebRTC error:", error);
-			if(useAudio) {
-					publishOwnFeed(false);
-			} else {
-				bootbox.alert("WebRTC error... " + error.message);
-				$('#publish').removeAttr('disabled').click(function() { publishOwnFeed(true); });
-			}
-		}
-	});
-}
-
-//화면 공유
-async function publishOwnFeed(useAudio) {
+function publishOwnFeed(useAudio) {
 	// Publish our stream
-	alert(publishOwnFeed)
-	//$('#publish').attr('disabled', true).unbind('click');
-
-	try{
-		const screenStream = await navigator.mediaDevices.getDisplayMedia({
-         video: true,
-         audio: false,
-      });
 	
-
-		sfutest.createOffer(
+	$('#publish').attr('disabled', true).unbind('click');
+	sfutest.createOffer(
 		{
-			stream: screenStream,
-			media: { audioRecv: false, videoRecv: false, audioSend: useAudio, videoSend: true },	
+			// Add data:true here if you want to publish datachannels as well
+			media: { audioRecv: false, videoRecv: false, audioSend: useAudio, videoSend: true },	// Publishers are sendonly
+			// If you want to test simulcasting (Chrome and Firefox only), then
+			// pass a ?simulcast=true when opening this demo page: it will turn
+			// the following 'simulcast' property to pass to janus.js to true
 			simulcast: doSimulcast,
 			simulcast2: doSimulcast2,
 			success: function(jsep) {
 				Janus.debug("Got publisher SDP!", jsep);
 				var publish = { request: "configure", audio: useAudio, video: true };
-				
+				// You can force a specific codec to use when publishing by using the
+				// audiocodec and videocodec properties, for instance:
+				// 		publish["audiocodec"] = "opus"
+				// to force Opus as the audio codec to use, or:
+				// 		publish["videocodec"] = "vp9"
+				// to force VP9 as the videocodec to use. In both case, though, forcing
+				// a codec will only work if: (1) the codec is actually in the SDP (and
+				// so the browser supports it), and (2) the codec is in the list of
+				// allowed codecs in a room. With respect to the point (2) above,
+				// refer to the text in janus.plugin.videoroom.jcfg for more details
 				sfutest.send({ message: publish, jsep: jsep });
 			},
 			error: function(error) {
@@ -420,9 +497,6 @@ async function publishOwnFeed(useAudio) {
 				}
 			}
 		});
-	} catch (err) {
-      console.error("화면 공유 실패:", err);
-   }
 }
 
 // [jsflux] 음소거
