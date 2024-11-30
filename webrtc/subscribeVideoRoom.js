@@ -25,10 +25,7 @@ $(document).ready(function() {
 	// Initialize the library (all console debuggers enabled)
 	Janus.init({debug: "all", callback: function() {
 		// Use a button to start the demo
-		$('#start').one('click', function() {
 
-			$(this).attr('disabled', true).unbind('click');
-			// Make sure the browser supports WebRTC
 			if(!Janus.isWebrtcSupported()) {
 				bootbox.alert("No WebRTC support... ");
 				return;
@@ -47,12 +44,11 @@ $(document).ready(function() {
 								*/
 								plugin: "janus.plugin.videoroom",
 								opaqueId: opaqueId,
-								success: function(pluginHandle) {
+								/* success: function(pluginHandle) {
 									$('#details').remove();
 									sfutest = pluginHandle;
 									Janus.log("Plugin attached! (" + sfutest.getPlugin() + ", id=" + sfutest.getId() + ")");
 									Janus.log("  -- This is a publisher/manager");
-									/* Room Name, My Name, 대화방 참여 버튼 활성화 */
 									$('#videojoin').removeClass('hide').show();
 									$('#registernow').removeClass('hide').show();
 									$('#roomname').focus();
@@ -70,7 +66,7 @@ $(document).ready(function() {
 								error: function(error) {
 									Janus.error("  -- Error attaching plugin...", error);
 									bootbox.alert("Error attaching plugin... " + error);
-								},
+								}, */
 								
 								//on이면 화면앞에 있는 publish글자를 지우고 화면 활성화
 								webrtcState: function(on) {
@@ -109,7 +105,7 @@ $(document).ready(function() {
 								onmessage: function(msg, jsep) {
 									
 									//alert("msg:"+msg+" ,jsep:"+jsep);
-
+									
 									Janus.debug(" ::: Got a message (publisher) :::", msg);
 									var event = msg["videoroom"];
 									Janus.debug("Event: " + event);
@@ -317,7 +313,6 @@ $(document).ready(function() {
 						window.location.reload();
 					}
 				});
-		});
 	}});
 });
 

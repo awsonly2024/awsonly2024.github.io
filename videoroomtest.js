@@ -113,11 +113,15 @@ $(document).ready(function() {
 									});
 								},
 								onmessage: function(msg, jsep) {
+									console.log("onmessage의 msg")
+									console.log(msg);
+
 									Janus.debug(" ::: Got a message (publisher) :::", msg);
 									var event = msg["videoroom"];
 									Janus.debug("Event: " + event);
 									if(event) {
 										if(event === "joined") {
+											alert("joined");
 											// Publisher/manager created, negotiate WebRTC and attach to existing feeds, if any
 											myid = msg["id"];
 											mypvtid = msg["private_id"];
@@ -142,12 +146,14 @@ $(document).ready(function() {
 												}
 											}
 										} else if(event === "destroyed") {
+											alert("destroyed");
 											// The room has been destroyed
 											Janus.warn("The room has been destroyed!");
 											bootbox.alert("The room has been destroyed", function() {
 												window.location.reload();
 											});
 										} else if(event === "event") {
+											alert("event");
 											// Any new feed to attach to?
 											if(msg["publishers"]) {
 												var list = msg["publishers"];
