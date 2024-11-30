@@ -113,8 +113,8 @@ $(document).ready(function() {
 								Answer: Offer를 수락할 때 생성.
 								*/
 								onmessage: function(msg, jsep) {
-									
 									console.log(msg)
+									alert("내가 들어왔을 때 onmessage의 msg")
 
 									Janus.debug(" ::: Got a message (publisher) :::", msg);
 									var event = msg["videoroom"];
@@ -248,6 +248,8 @@ $(document).ready(function() {
 								사용자가 자신의 비디오와 오디오를 캡처한 미디어 스트림입니다. 예를 들어, 사용자가 웹캠을 활성화하거나 마이크를 켤 때 생성되는 스트림입니다.
 								*/
 								onlocalstream: function(stream) {
+									console.log(stream)
+									alert("내가 들어왔을 때 onlcoalstream")
 									Janus.debug(" ::: Got a local stream :::", stream);
 									mystream = stream;
 									$('#videojoin').hide();
@@ -486,6 +488,8 @@ function newRemoteFeed(id, display, audio, video) {
 				bootbox.alert("Error attaching plugin... " + error);
 			},
 			onmessage: function(msg, jsep) {
+				console.log(msg)
+				alert("다른 사람이 들어왔을 때 onmessage의 msg")
 				Janus.debug(" ::: Got a message (subscriber) :::", msg);
 				var event = msg["videoroom"];
 				Janus.debug("Event: " + event);
@@ -556,9 +560,13 @@ function newRemoteFeed(id, display, audio, video) {
 				Janus.log("Janus says this WebRTC PeerConnection (feed #" + remoteFeed.rfindex + ") is " + (on ? "up" : "down") + " now");
 			},
 			onlocalstream: function(stream) {
+				console.log(stream)
+				alert("다른 사람이 들어왔을 때 onlocalstream")
 				// The subscriber stream is recvonly, we don't expect anything here
 			},
 			onremotestream: function(stream) {
+				console.log(stream);
+				alert("다른 사람이 들어왔을 때 onremotestream")
 				Janus.debug("Remote feed #" + remoteFeed.rfindex + ", stream:", stream);
 				var addButtons = false;
 				if($('#remotevideo'+remoteFeed.rfindex).length === 0) {
