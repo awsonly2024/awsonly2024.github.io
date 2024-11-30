@@ -25,7 +25,10 @@ $(document).ready(function() {
 	// Initialize the library (all console debuggers enabled)
 	Janus.init({debug: "all", callback: function() {
 		// Use a button to start the demo
+		$('#start').one('click', function() {
 
+			$(this).attr('disabled', true).unbind('click');
+			// Make sure the browser supports WebRTC
 			if(!Janus.isWebrtcSupported()) {
 				bootbox.alert("No WebRTC support... ");
 				return;
@@ -38,37 +41,56 @@ $(document).ready(function() {
 						// Attach to VideoRoom plugin
 						janus.attach(
 							{
-								/*
-									start -> stop
-									밑에 부분에 Room Name, My Name, 대화방 참여 나타남
-								*/
 								plugin: "janus.plugin.videoroom",
 								opaqueId: opaqueId,
-								/* success: function(pluginHandle) {
+								success: function(pluginHandle) {
 									$('#details').remove();
 									sfutest = pluginHandle;
 									Janus.log("Plugin attached! (" + sfutest.getPlugin() + ", id=" + sfutest.getId() + ")");
 									Janus.log("  -- This is a publisher/manager");
+									// Prepare the username registration
 									$('#videojoin').removeClass('hide').show();
 									$('#registernow').removeClass('hide').show();
+									$('#register').click(registerUsername);
 									$('#roomname').focus();
 									$('#start').removeAttr('disabled').html("Stop")
-									.click(function() {
-										$(this).attr('disabled', true);
-										janus.destroy();
-									});
-									//대화방 참여 버튼을 누르면 대화방은 만들어진다
-									$('#register').click(registerUsername);
+										.click(function() {
+											$(this).attr('disabled', true);
+											janus.destroy();
+										});
 
-                    		Janus.log("Room List > ");
-                    		//roomList();
-								}  ,
+                    Janus.log("Room List > ");
+                    //roomList();
+								},
 								error: function(error) {
 									Janus.error("  -- Error attaching plugin...", error);
 									bootbox.alert("Error attaching plugin... " + error);
-								}, */
-								
-								//on이면 화면앞에 있는 publish글자를 지우고 화면 활성화
+								},
+								consentDialog: function(on) {
+									Janus.debug("Consent dialog should be " + (on ? "on" : "off") + " now");
+									if(on) {
+										// Darken screen and show hint
+										$.blockUI({
+											message: '<div><img src="up_arrow.png"/></div>',
+											css: {
+												border: 'none',
+												padding: '15px',
+												backgroundColor: 'transparent',
+												color: '#aaa',
+												top: '10px',
+												left: (navigator.mozGetUserMedia ? '-100px' : '300px')
+											} });
+									} else {
+										// Restore screen
+										$.unblockUI();
+									}
+								},
+								iceState: function(state) {
+									Janus.log("ICE state changed to " + state);
+								},
+								mediaState: function(medium, on) {
+									Janus.log("Janus " + (on ? "started" : "stopped") + " receiving our " + medium);
+								},
 								webrtcState: function(on) {
 									Janus.log("Janus says our WebRTC PeerConnection is " + (on ? "up" : "down") + " now");
 									$("#videolocal").parent().parent().unblock();
@@ -89,28 +111,17 @@ $(document).ready(function() {
 										sfutest.send({ message: { request: "configure", bitrate: bitrate }});
 										return false;
 									});
-								}, 
-
-								/*
-								** Janus에서 비디오룸 관련 메시지를 받을 때 호출됩니다. **
-								Janus WebRTC Gateway에서 비디오 룸 플러그인(videoroom)의 이벤트를 처리하는 함수입니다. 사용자가 방에 참여하거나 새로운 참가자가 들어올 때, 또는 방이 삭제되는 등의 이벤트에 대해 적절한 동작을 수행하도록 설계되었습니다.
-								"joined": 방에 성공적으로 참여.
-								"destroyed": 방이 삭제됨.
-								"event": 방 내에서 새로운 피드(publisher)가 추가되거나, 기존 피드가 변경됨.
-
-								jsep는 보통 아래 두 가지 중 하나의 SDP 메시지를 포함합니다:
-								Offer: 클라이언트가 연결을 제안할 때 생성.
-								Answer: Offer를 수락할 때 생성.
-								*/
+								},
 								onmessage: function(msg, jsep) {
-									
-									//alert("msg:"+msg+" ,jsep:"+jsep);
-									
+									console.log("onmessage의 msg")
+									console.log(msg);
+
 									Janus.debug(" ::: Got a message (publisher) :::", msg);
 									var event = msg["videoroom"];
 									Janus.debug("Event: " + event);
 									if(event) {
 										if(event === "joined") {
+											alert("joined");
 											// Publisher/manager created, negotiate WebRTC and attach to existing feeds, if any
 											myid = msg["id"];
 											mypvtid = msg["private_id"];
@@ -135,12 +146,14 @@ $(document).ready(function() {
 												}
 											}
 										} else if(event === "destroyed") {
+											alert("destroyed");
 											// The room has been destroyed
 											Janus.warn("The room has been destroyed!");
 											bootbox.alert("The room has been destroyed", function() {
 												window.location.reload();
 											});
 										} else if(event === "event") {
+											alert("event");
 											// Any new feed to attach to?
 											if(msg["publishers"]) {
 												var list = msg["publishers"];
@@ -232,11 +245,7 @@ $(document).ready(function() {
 												'</div>');
 										}
 									}
-								},  
-								/*
-								로컬 스트림이 성공적으로 생성되거나 캡처된 후 호출 :
-								사용자가 자신의 비디오와 오디오를 캡처한 미디어 스트림입니다. 예를 들어, 사용자가 웹캠을 활성화하거나 마이크를 켤 때 생성되는 스트림입니다.
-								*/
+								},
 								onlocalstream: function(stream) {
 									Janus.debug(" ::: Got a local stream :::", stream);
 									mystream = stream;
@@ -281,17 +290,9 @@ $(document).ready(function() {
 										$('#myvideo').removeClass('hide').show();
 									}
 								},
-								/*
-								onremotestream: function(stream)은 원격 피어로부터 미디어 스트림이 도착했을 때 호출되는 콜백 함수입니다.
-
-								이 함수는 원격 피어(WebRTC 연결의 상대방)에서 전송된 오디오 및 비디오 데이터를 로컬 브라우저에서 표시하거나 처리할 때 사용됩니다.
-								*/
 								onremotestream: function(stream) {
 									// The publisher stream is sendonly, we don't expect anything here
 								},
-								/*
-								이 함수는 스트림이 중단되었을 때 사용자의 UI와 상태를 초기화하는 역할을 합니다. 이후 사용자가 원한다면 Publish 버튼을 통해 새로운 스트림을 퍼블리시할 수 있습니다.
-								*/
 								oncleanup: function() {
 									Janus.log(" ::: Got a cleanup notification: we are unpublished now :::");
 									mystream = null;
@@ -313,22 +314,23 @@ $(document).ready(function() {
 						window.location.reload();
 					}
 				});
+		});
 	}});
 });
 
 function checkEnter(field, event) {
-	console.log(event)
 	var theCode = event.keyCode ? event.keyCode : event.which ? event.which : event.charCode;
-	if(theCode == 13) { //keyCode 13 => endter키
+	if(theCode == 13) {
 		registerUsername();
 		return false;
 	} else {
 		return true;
 	}
-} 
+}
 
 // [jsflux] 방생성 및 조인
 function registerUsername() {
+
 	if($('#roomname').length === 0) {
 		// Create fields to register
         $('#register').click(registerUsername);
@@ -378,7 +380,7 @@ function registerUsername() {
 			return;
 		}
 
-        alert("username:" + username + " ,roomname:"+roomname);
+        //alert("room id:" + roomname);
         myroom = Number(roomname); //사용자 입력 방 아이디
 
         var createRoom = {
@@ -407,23 +409,13 @@ function registerUsername() {
                 var register = { "request": "join", "room": myroom, "ptype": "publisher", "display": username };
                 myusername = username;
                 sfutest.send({"message": register});
-
-					 /*
-					 사용자의 방 참여를 요청합니다.
-					register 객체:
-					request: "join": 방에 참여 요청.
-					room: 생성된 방 번호를 지정.
-					ptype: "publisher": 이 클라이언트는 방에 미디어를 송출하는 역할을 담당.
-					display: 방 참여 시 표시될 사용자 이름.
-					요청이 성공하면 사용자는 방에 **퍼블리셔(방송 송출자)**로 참여합니다.
-					 */
             }
         }});
 	}
 }
 
 // [jsflux] 방 참여자
-/* function participantsList(room){
+function participantsList(room){
     var listHtml = "";
     var roomPQuery = {
         "request" : "listparticipants",
@@ -442,12 +434,11 @@ function registerUsername() {
         listHtml += '</table>';
         $("#room_" + room).html(listHtml);
     }});
-} */
+}
 
 // [jsflux] 내 화상화면 시작
 function publishOwnFeed(useAudio) {
 	// Publish our stream
-	
 	$('#publish').attr('disabled', true).unbind('click');
 	sfutest.createOffer(
 		{
@@ -711,7 +702,6 @@ function getQueryStringValue(name) {
 }
 
 // Helpers to create Simulcast-related UI, if enabled
-//해상도, FPS(프레임속도) 버튼 생성 적용
 function addSimulcastButtons(feed, temporal) {
 	var index = feed;
 	$('#remote'+index).parent().append(
@@ -798,7 +788,6 @@ function addSimulcastButtons(feed, temporal) {
 		});
 }
 
-//해상도, FPS(프레임속도) 변경 후 적용
 function updateSimulcastButtons(feed, substream, temporal) {
 	// Check the substream
 	var index = feed;
