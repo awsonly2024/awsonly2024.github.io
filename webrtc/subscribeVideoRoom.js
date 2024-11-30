@@ -98,9 +98,9 @@ $(document).ready(function() {
 								/*
 								** Janus에서 비디오룸 관련 메시지를 받을 때 호출됩니다. **
 								Janus WebRTC Gateway에서 비디오 룸 플러그인(videoroom)의 이벤트를 처리하는 함수입니다. 사용자가 방에 참여하거나 새로운 참가자가 들어올 때, 또는 방이 삭제되는 등의 이벤트에 대해 적절한 동작을 수행하도록 설계되었습니다.
-								"joined": 방에 성공적으로 참여.
+								"joined": 방에 성공적으로 참여-자신이 만들든 기존에 있던 방에 참여하든 "방만들기" 버튼을 눌러 registerUsername()가 실행되면 호출
 								"destroyed": 방이 삭제됨.
-								"event": 방 내에서 새로운 피드(publisher)가 추가되거나, 기존 피드가 변경됨.
+								"event": 방 내에서 새로운 피드(publisher)가 추가되거나, 기존 피드가 변경되는 경우 발생 - 방장인 경우 : 누군가 들어왔기 때문에 방장 측에서 발생, 참여자는 새로운 방에 입장했기 때문에 발생. 즉 방장 측과 새로운 참여자 전부 각각 발생
 
 								jsep는 보통 아래 두 가지 중 하나의 SDP 메시지를 포함합니다:
 								Offer: 클라이언트가 연결을 제안할 때 생성.
@@ -119,11 +119,12 @@ $(document).ready(function() {
 											myid = msg["id"];
 											mypvtid = msg["private_id"];
 											Janus.log("Successfully joined room " + msg["room"] + " with ID " + myid);
-											if(subscriber_mode) {
-												$('#videojoin').hide();
+											$('#videojoin').hide();
 												$('#videos').removeClass('hide').show();
+											if(subscriber_mode) {
+												
 											} else {
-												publishOwnFeed(true);
+												//publishOwnFeed(true);
 											}
 											// Any new feed to attach to?
 											if(msg["publishers"]) {
@@ -456,26 +457,14 @@ function publishOwnFeed(useAudio) {
 	$('#publish').attr('disabled', true).unbind('click');
 	sfutest.createOffer(
 		{
-			// Add data:true here if you want to publish datachannels as well
-			media: { audioRecv: false, videoRecv: false, audioSend: useAudio, videoSend: true },	// Publishers are sendonly
-			// If you want to test simulcasting (Chrome and Firefox only), then
-			// pass a ?simulcast=true when opening this demo page: it will turn
-			// the following 'simulcast' property to pass to janus.js to true
+			//Publishers는 현재 브라우저 사용자로 참가자가 된다, videoSend와 video전부 false로..
+			media: { audioRecv: false, videoRecv: false, audioSend: useAudio, videoSend: false },	// Publishers are sendonly
 			simulcast: doSimulcast,
 			simulcast2: doSimulcast2,
 			success: function(jsep) {
 				Janus.debug("Got publisher SDP!", jsep);
-				var publish = { request: "configure", audio: useAudio, video: true };
-				// You can force a specific codec to use when publishing by using the
-				// audiocodec and videocodec properties, for instance:
-				// 		publish["audiocodec"] = "opus"
-				// to force Opus as the audio codec to use, or:
-				// 		publish["videocodec"] = "vp9"
-				// to force VP9 as the videocodec to use. In both case, though, forcing
-				// a codec will only work if: (1) the codec is actually in the SDP (and
-				// so the browser supports it), and (2) the codec is in the list of
-				// allowed codecs in a room. With respect to the point (2) above,
-				// refer to the text in janus.plugin.videoroom.jcfg for more details
+				//var publish = { request: "configure", audio: useAudio, video: true };
+				var publish = { request: "configure", audio: useAudio, video: false };
 				sfutest.send({ message: publish, jsep: jsep });
 			},
 			error: function(error) {
