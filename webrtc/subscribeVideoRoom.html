@@ -51,45 +51,6 @@
 <body>
   <nav class="navbar navbar-default navbar-static-top">
   </nav>
-
-  <div class="container">
-    <div class="row">
-      <div class="col-md-12">
-        <div class="page-header">
-          <h1>화상회의
-            <button class="btn btn-default" autocomplete="off" id="start">Start</button>
-          </h1>
-        </div>
-        <div class="container" id="details">
-          <div class="row">
-            <div class="col-md-12">
-              <h3>Start 버튼을 누르고 데모를 시작하세요</h3>
-              <h4>채팅방 ID로 기존 채팅방을 연결하거나 새로 생성합니다.</h4>
-              <h4>* ID는 영문 또는 숫자로 입력해야 합니다.</h4>
-            </div>
-          </div>
-        </div>
-        <div class="container" id="videojoin">
-          <div class="row">
-            <div class="col-md-12" id="controls">
-              <div id="registernow">
-                <span class="label label-info" id="room"></span>
-                <div class="input-group margin-bottom-md " style="width: 100% !important;">
-                  <input autocomplete="off" class="form-control" type="text" placeholder="Room Name" id="roomname" />
-                </div>
-                <span class="label label-info" id="you"></span>
-                <div class="input-group margin-bottom-md ">
-                  <span class="input-group-addon">대화명</span>
-                  <input autocomplete="off" class="form-control" type="text" placeholder="My Name" id="username"
-                    onkeypress="return checkEnter(this, event);" />
-                  <span class="input-group-btn">
-                    <button class="btn btn-success" autocomplete="off" id="register">대화방 참여</button>
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
         <div class="container" id="videos">
           <div class="row">
             <!-- <div class="col-md-4">
