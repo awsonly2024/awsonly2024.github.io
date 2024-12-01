@@ -10,7 +10,7 @@ var room = 88763;	// Demo room
 if(getQueryStringValue("room") !== "")
 	room = parseInt(getQueryStringValue("room"));
 
-var username = "Sdf2";
+var username = "kimhj";
 if(getQueryStringValue("username") !== "")
 	username = parseInt(getQueryStringValue("username"));
 
@@ -318,6 +318,9 @@ function checkEnter(field, event) {
 
 //방 조인
 function registerUsername() {
+
+	room = parseInt(document.getElementById("room").value);
+	alert(room)
 
 	var register = { "request": "join", "room": room, "ptype": "publisher", "display": username };
 	//var register = { "request": "join", "room": room, "ptype": "subscriber", "display": username };
