@@ -472,20 +472,13 @@ function publishOwnFeed(useAudio) {
 	$('#publish').attr('disabled', true).unbind('click');
 	sfutest.createOffer(
 		{
-			/*
-			//오디오 비디오 수신 : audioRecv, videoRecv
-			//오디오 비디오 송신 : audioSend, videoSend
-			WebRTC 피어 단계 - 브라우저 간의 WebRTC 설정 단계, 현재 subscribe 구독자 브라우저기 때문에 
-			수신은 true, 송신은 false
-			*/
-			media: { audioRecv: true, videoRecv: true, audioSend: false, videoSend: false },	// Publishers are sendonly
-			
+			//media: { audioRecv: true, videoRecv: true, audioSend: useAudio, videoSend: true },	// Publishers are sendonly
+			media: { audioRecv: false, videoRecv: false, audioSend: true, videoSend: true },	// Publishers are sendonly
 			simulcast: doSimulcast,
 			simulcast2: doSimulcast2,
 			success: function(jsep) {
 				Janus.debug("Got publisher SDP!", jsep);
-				//클라이언트가 야누스 서버 플러그인에 대한 오디오, 비디오 설정을 보낸다
-				var publish = { request: "configure", audio: false, video: false };
+				var publish = { request: "configure", audio: true, video: true };
 				//var subscribe = { request: "configure", audio: false, video: false };
 				
 				sfutest.send({ message: publish, jsep: jsep });
