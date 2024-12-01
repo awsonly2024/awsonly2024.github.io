@@ -125,7 +125,6 @@ $(document).ready(function() {
 											myid = msg["id"];
 											mypvtid = msg["private_id"];
 											Janus.log("Successfully joined room " + msg["room"] + " with ID " + myid);
-											alert(subscriber_mode)
 											if(subscriber_mode) {
 												$('#videojoin').hide();
 												$('#videos').removeClass('hide').show();
@@ -378,7 +377,6 @@ function registerUsername() {
 			return;
 		}
 
-        //alert("room id:" + roomname);
         myroom = Number(roomname); //사용자 입력 방 아이디
 
         var createRoom = {

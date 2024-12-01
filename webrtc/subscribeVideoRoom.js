@@ -348,7 +348,6 @@ function participantsList(room){
 // [jsflux] 내 화상화면 시작
 function publishOwnFeed(useAudio) {
 	// Publish our stream
-	alert("publishOwnFeed() : 내 화상화면 시작")
 	$('#publish').attr('disabled', true).unbind('click');
 	sfutest.createOffer(
 		{
@@ -403,7 +402,6 @@ function unpublishOwnFeed() {
 
 // [jsflux] 새로운 유저 들어왔을때
 function newRemoteFeed(id, display, audio, video) {
-	alert("newRemoteFeed() : 새로운 유저 들어왔을 때 id:"+id+" ,video:"+video)
 	// A new feed has been published, create a new plugin handle and attach to it as a subscriber
 	var remoteFeed = null;
 	janus.attach(
@@ -411,9 +409,6 @@ function newRemoteFeed(id, display, audio, video) {
 			plugin: "janus.plugin.videoroom",
 			opaqueId: opaqueId,
 			success: function(pluginHandle) {
-				console.log("아래쪽 success")
-				console.log(pluginHandle)
-				alert("아래쪽 success")
 
 				remoteFeed = pluginHandle;
 				remoteFeed.simulcastStarted = false;
@@ -447,9 +442,6 @@ function newRemoteFeed(id, display, audio, video) {
 				bootbox.alert("Error attaching plugin... " + error);
 			},
 			onmessage: function(msg, jsep) {
-				console.log("아래쪽 onmessage")
-				console.log(msg)
-				alert("아래쪽 onmessage")
 
 				Janus.debug(" ::: Got a message (subscriber) :::", msg);
 				var event = msg["videoroom"];
@@ -523,16 +515,8 @@ function newRemoteFeed(id, display, audio, video) {
 			onlocalstream: function(stream) {
 				// The subscriber stream is recvonly, we don't expect anything here
 
-				console.log("아래쪽 onlocalstream")
-				console.log(stream)
-				alert("아래쪽 onlocalstream")
 			},
 			onremotestream: function(stream) {
-
-				console.log("아래쪽 onremotestream")
-				console.log(stream)
-				alert("아래쪽 onremotestream")
-
 				Janus.debug("Remote feed #" + remoteFeed.rfindex + ", stream:", stream);
 				var addButtons = false;
 				if($('#remotevideo'+remoteFeed.rfindex).length === 0) {
