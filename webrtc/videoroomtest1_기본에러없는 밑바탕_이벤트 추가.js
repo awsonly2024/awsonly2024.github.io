@@ -48,6 +48,10 @@ $(document).ready(function() {
 								plugin: "janus.plugin.videoroom",
 								opaqueId: opaqueId,
 								success: function(pluginHandle) {
+									console.log("위쪽 success")
+									console.log(pluginHandle)
+									alert("위쪽 success")
+
 									$('#details').remove();
 									sfutest = pluginHandle;
 									Janus.log("Plugin attached! (" + sfutest.getPlugin() + ", id=" + sfutest.getId() + ")");
@@ -107,8 +111,9 @@ $(document).ready(function() {
 								Answer: Offer를 수락할 때 생성.
 								*/
 								onmessage: function(msg, jsep) {
-									
-									//alert("msg:"+msg+" ,jsep:"+jsep);
+									console.log("위쪽 onmessage")
+									console.log(msg)
+									alert("위쪽 onmessage")
 
 									Janus.debug(" ::: Got a message (publisher) :::", msg);
 									var event = msg["videoroom"];
@@ -242,6 +247,10 @@ $(document).ready(function() {
 								사용자가 자신의 비디오와 오디오를 캡처한 미디어 스트림입니다. 예를 들어, 사용자가 웹캠을 활성화하거나 마이크를 켤 때 생성되는 스트림입니다.
 								*/
 								onlocalstream: function(stream) {
+									console.log("위쪽 onlocalstream")
+									console.log(stream)
+									alert("위쪽 onlocalstream")
+
 									Janus.debug(" ::: Got a local stream :::", stream);
 									mystream = stream;
 									$('#videojoin').hide();
@@ -292,6 +301,10 @@ $(document).ready(function() {
 								*/
 								onremotestream: function(stream) {
 									// The publisher stream is sendonly, we don't expect anything here
+
+									console.log("위쪽 onremotestream")
+									console.log(stream)
+									alert("위쪽 onremotestream")
 								},
 								/*
 								이 함수는 스트림이 중단되었을 때 사용자의 UI와 상태를 초기화하는 역할을 합니다. 이후 사용자가 원한다면 Publish 버튼을 통해 새로운 스트림을 퍼블리시할 수 있습니다.
@@ -519,6 +532,10 @@ function newRemoteFeed(id, display, audio, video) {
 			plugin: "janus.plugin.videoroom",
 			opaqueId: opaqueId,
 			success: function(pluginHandle) {
+				console.log("아래쪽 success")
+				console.log(pluginHandle)
+				alert("아래쪽 success")
+
 				remoteFeed = pluginHandle;
 				remoteFeed.simulcastStarted = false;
 				Janus.log("Plugin attached! (" + remoteFeed.getPlugin() + ", id=" + remoteFeed.getId() + ")");
@@ -551,6 +568,10 @@ function newRemoteFeed(id, display, audio, video) {
 				bootbox.alert("Error attaching plugin... " + error);
 			},
 			onmessage: function(msg, jsep) {
+				console.log("아래쪽 onmessage")
+				console.log(msg)
+				alert("아래쪽 onmessage")
+
 				Janus.debug(" ::: Got a message (subscriber) :::", msg);
 				var event = msg["videoroom"];
 				Janus.debug("Event: " + event);
@@ -622,8 +643,17 @@ function newRemoteFeed(id, display, audio, video) {
 			},
 			onlocalstream: function(stream) {
 				// The subscriber stream is recvonly, we don't expect anything here
+
+				console.log("아래쪽 onlocalstream")
+				console.log(stream)
+				alert("아래쪽 onlocalstream")
 			},
 			onremotestream: function(stream) {
+
+				console.log("아래쪽 onremotestream")
+				console.log(stream)
+				alert("아래쪽 onremotestream")
+
 				Janus.debug("Remote feed #" + remoteFeed.rfindex + ", stream:", stream);
 				var addButtons = false;
 				if($('#remotevideo'+remoteFeed.rfindex).length === 0) {
