@@ -6,11 +6,11 @@ var janus = null;
 var sfutest = null;
 var opaqueId = "videoroomtest-"+Janus.randomString(12);
 
-var room = 9934527;	// Demo room
+var room = 88763;	// Demo room
 if(getQueryStringValue("room") !== "")
 	room = parseInt(getQueryStringValue("room"));
 
-var username = "username_temp";
+var username = "Sdf2";
 if(getQueryStringValue("username") !== "")
 	username = parseInt(getQueryStringValue("username"));
 
@@ -56,7 +56,8 @@ $(document).ready(function() {
 									Janus.log("Plugin attached! (" + sfutest.getPlugin() + ", id=" + sfutest.getId() + ")");
 									Janus.log("  -- This is a publisher/manager");
 
-									registerUsername(); //방 조인
+									$("#buttonup").click(registerUsername);
+									//registerUsername(); //방 조인
 									
                     			Janus.log("Room List > ");
 								}  ,
