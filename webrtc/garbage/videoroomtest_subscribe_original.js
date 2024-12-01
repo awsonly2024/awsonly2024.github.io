@@ -6,15 +6,10 @@ var janus = null;
 var sfutest = null;
 var opaqueId = "videoroomtest-"+Janus.randomString(12);
 
-//-------------- url에서 값 가져오기
-var urlParams = new URLSearchParams(window.location.search);
-
-var username = urlParams.get('username');
-var room = urlParams.get('room');
-
-alert("username"+ username + " ,room:" + room);
-//-------------- * *
-
+var myroom = 1234;	// Demo room
+if(getQueryStringValue("room") !== "")
+	myroom = parseInt(getQueryStringValue("room"));
+var myusername = null;
 var myid = null;
 var mystream = null;
 var mypvtid = null;
@@ -26,23 +21,24 @@ var doSimulcast = (getQueryStringValue("simulcast") === "yes" || getQueryStringV
 var doSimulcast2 = (getQueryStringValue("simulcast2") === "yes" || getQueryStringValue("simulcast2") === "true");
 var subscriber_mode = (getQueryStringValue("subscriber-mode") === "yes" || getQueryStringValue("subscriber-mode") === "true");
 
-
-//방 조인
-var register = { "request": "join", "room": parseInt(room), "ptype": "publisher", "display": username }; 
-
-
 $(document).ready(function() {
 	// Initialize the library (all console debuggers enabled)
 	Janus.init({debug: "all", callback: function() {
 		// Use a button to start the demo
 
+
+			$(this).attr('disabled', true).unbind('click');
+			// Make sure the browser supports WebRTC
+			if(!Janus.isWebrtcSupported()) {
+				bootbox.alert("No WebRTC support... ");
+				return;
+			}
 			// Create session
 			janus = new Janus(
 				{
 					server: server,
 					success: function() {
 						// Attach to VideoRoom plugin
-
 						janus.attach(
 							{
 								/*
@@ -52,6 +48,12 @@ $(document).ready(function() {
 								plugin: "janus.plugin.videoroom",
 								opaqueId: opaqueId,
 								success: function(pluginHandle) {
+
+
+									console.log("위쪽 success")
+									console.log(pluginHandle)
+									alert("위쪽 success")
+
 									$('#details').remove();
 									sfutest = pluginHandle;
 									Janus.log("Plugin attached! (" + sfutest.getPlugin() + ", id=" + sfutest.getId() + ")");
@@ -67,7 +69,7 @@ $(document).ready(function() {
 									});
 									//대화방 참여 버튼을 누르면 대화방은 만들어진다
 									$('#register').click(registerUsername);
-									registerUsername();
+
                     		Janus.log("Room List > ");
                     		//roomList();
 								}  ,
@@ -111,8 +113,9 @@ $(document).ready(function() {
 								Answer: Offer를 수락할 때 생성.
 								*/
 								onmessage: function(msg, jsep) {
+									console.log("위쪽 onmessage")
 									console.log(msg)
-									alert("내가 들어왔을 때 onmessage의 msg")
+									alert("위쪽 onmessage")
 
 									Janus.debug(" ::: Got a message (publisher) :::", msg);
 									var event = msg["videoroom"];
@@ -123,12 +126,15 @@ $(document).ready(function() {
 											myid = msg["id"];
 											mypvtid = msg["private_id"];
 											Janus.log("Successfully joined room " + msg["room"] + " with ID " + myid);
+											//$('#videojoin').hide();
+											//$('#videos').removeClass('hide').show();
+												/*
 											if(subscriber_mode) {
 												$('#videojoin').hide();
 												$('#videos').removeClass('hide').show();
 											} else {
 												publishOwnFeed(true);
-											}
+											}*/
 											// Any new feed to attach to?
 											if(msg["publishers"]) {
 												var list = msg["publishers"];
@@ -206,9 +212,9 @@ $(document).ready(function() {
 												if(msg["error_code"] === 426) {
 													// This is a "no such room" error: give a more meaningful description
 													bootbox.alert(
-														"<p>Apparently room <code>" + room + "</code> (the one this demo uses as a test room) " +
+														"<p>Apparently room <code>" + myroom + "</code> (the one this demo uses as a test room) " +
 														"does not exist...</p><p>Do you have an updated <code>janus.plugin.videoroom.jcfg</code> " +
-														"configuration file? If not, make sure you copy the details of room <code>" + room + "</code> " +
+														"configuration file? If not, make sure you copy the details of room <code>" + myroom + "</code> " +
 														"from that sample in your current configuration file, then restart Janus and try again."
 													);
 												} else {
@@ -246,8 +252,10 @@ $(document).ready(function() {
 								사용자가 자신의 비디오와 오디오를 캡처한 미디어 스트림입니다. 예를 들어, 사용자가 웹캠을 활성화하거나 마이크를 켤 때 생성되는 스트림입니다.
 								*/
 								onlocalstream: function(stream) {
+									console.log("위쪽 onlocalstream")
 									console.log(stream)
-									alert("내가 들어왔을 때 onlcoalstream")
+									alert("위쪽 onlocalstream")
+
 									Janus.debug(" ::: Got a local stream :::", stream);
 									mystream = stream;
 									$('#videojoin').hide();
@@ -261,6 +269,7 @@ $(document).ready(function() {
 										$('#videolocal').append('<button class="btn btn-warning btn-xs" id="unpublish" style="position: absolute; bottom: 0px; right: 0px; margin: 15px;">Unpublish</button>');
 										$('#unpublish').click(unpublishOwnFeed);
 									}
+									//$('#publisher').removeClass('hide').html(myusername).show();
 									Janus.attachMediaStream($('#myvideo').get(0), stream);
 									$("#myvideo").get(0).muted = "muted";
 									if(sfutest.webrtcStuff.pc.iceConnectionState !== "completed" &&
@@ -277,7 +286,7 @@ $(document).ready(function() {
 									var videoTracks = stream.getVideoTracks();
 									if(!videoTracks || videoTracks.length === 0) {
 										// No webcam
-										$('#myvideo').hide();
+										//$('#myvideo').hide();
 										if($('#videolocal .no-video-container').length === 0) {
 											$('#videolocal').append(
 												'<div class="no-video-container">' +
@@ -297,6 +306,10 @@ $(document).ready(function() {
 								*/
 								onremotestream: function(stream) {
 									// The publisher stream is sendonly, we don't expect anything here
+
+									console.log("위쪽 onremotestream")
+									console.log(stream)
+									alert("위쪽 onremotestream")
 								},
 								/*
 								이 함수는 스트림이 중단되었을 때 사용자의 UI와 상태를 초기화하는 역할을 합니다. 이후 사용자가 원한다면 Publish 버튼을 통해 새로운 스트림을 퍼블리시할 수 있습니다.
@@ -322,22 +335,130 @@ $(document).ready(function() {
 						window.location.reload();
 					}
 				});
-		
 	}});
 });
 
+function checkEnter(field, event) {
+	console.log(event)
+	var theCode = event.keyCode ? event.keyCode : event.which ? event.which : event.charCode;
+	if(theCode == 13) { //keyCode 13 => endter키
+		registerUsername();
+		return false;
+	} else {
+		return true;
+	}
+} 
 
 // [jsflux] 방생성 및 조인
 function registerUsername() {
-	console.log(register)
-	sfutest.send({
-		"message": register, success: () => {}
-		});
-	}
+	alert("registerUsername() : 방생성 및 조인");
 
+	if($('#roomname').length === 0) {
+		// Create fields to register
+        $('#register').click(registerUsername);
+		$('#roomname').focus();
+    } else if($('#username').length === 0) {
+		// Create fields to register
+		$('#register').click(registerUsername);
+		$('#username').focus();
+	} else {
+		// Try a registration
+		$('#username').attr('disabled', true);
+		$('#register').attr('disabled', true).unbind('click');
+
+        var roomname = $('#roomname').val();
+		if(roomname === "") {
+			$('#room')
+				.removeClass().addClass('label label-warning')
+				.html("채팅방 아이디(번호)를 넣으세요. ex) 1234");
+			$('#roomname').removeAttr('disabled');
+			$('#register').removeAttr('disabled').click(registerUsername);
+			return;
+		}
+		if(/[^0-9]/.test(roomname)) {
+			$('#room')
+				.removeClass().addClass('label label-warning')
+				.html('채팅방 아이디는 숫자만 가능합니다.');
+			$('#roomname').removeAttr('disabled').val("");
+			$('#register').removeAttr('disabled').click(registerUsername);
+			return;
+		}
+
+		var username = $('#username').val();
+		if(username === "") {
+			$('#you')
+				.removeClass().addClass('label label-warning')
+				.html("채팅방에서 사용할 닉네임을 입력해주세요.");
+			$('#username').removeAttr('disabled');
+			$('#register').removeAttr('disabled').click(registerUsername);
+			return;
+		}
+		if(/[^a-zA-Z0-9]/.test(username)) {
+			$('#you')
+				.removeClass().addClass('label label-warning')
+				.html('닉네임은 영문만 가능합니다.');
+			$('#username').removeAttr('disabled').val("");
+			$('#register').removeAttr('disabled').click(registerUsername);
+			return;
+		}
+
+        alert("username:" + username + " ,roomname:"+roomname);
+        myroom = Number(roomname); //사용자 입력 방 아이디
+
+        var createRoom = {
+            request : "create",
+            room : myroom,
+            permanent : false,
+            record: false,
+            publishers: 6,
+            bitrate : 128000,
+            fir_freq : 10,
+            //ptype: "publisher",
+				ptype: "publisher",
+            description: "test",
+            is_private: false
+        }
+
+		  /*
+		   var joinRequest = {
+			request: "join",
+			room: parseInt(882395), // 동일한 방 ID
+			ptype: "subscriber", // Subscriber로 참가
+			};  
+			sfutest.send({ message: joinRequest }); 
+			:7928895957980590
+			7928895957980590
+
+			
+6063447503939963
+
+		  	{videoroom: 'joined', room: 882395, description: 'test', id: 1971057660343862, private_id: 617142102, …}
+			*/
+
+		  
+        sfutest.send({ message: createRoom, success:function(result){
+				console.log("result")
+				console.log(result);
+            var event = result["videoroom"]; Janus.debug("Event: " + event);
+
+            if(event != undefined && event != null) {
+                // Our own screen sharing session has been created, join it
+                console.log("Room Create Result: " + result);
+                console.log("error: " + result["error"]);
+                room = result["room"];
+                console.log("Screen sharing session created: " + room);
+
+                var username = $('#username').val(); //myusername = randomString(12);
+                var register = { "request": "join", "room": 882395, "ptype": "publisher", "display": username };
+                myusername = username;
+                sfutest.send({"message": register});
+            }
+        }});
+	}
+}
 
 // [jsflux] 방 참여자
-/* function participantsList(room){
+function participantsList(room){
     var listHtml = "";
     var roomPQuery = {
         "request" : "listparticipants",
@@ -356,58 +477,55 @@ function registerUsername() {
         listHtml += '</table>';
         $("#room_" + room).html(listHtml);
     }});
-} */
+} 
 
 // [jsflux] 내 화상화면 시작
 function publishOwnFeed(useAudio) {
-
-	sfutest.createOffer(
-	{
-		media: { audioRecv: false, videoRecv: false, audioSend: useAudio, videoSend: true },	
-		simulcast: doSimulcast,
-		simulcast2: doSimulcast2,
-		success: function(jsep) {
-			Janus.debug("Got publisher SDP!", jsep);
-			var publish = { request: "configure", audio: useAudio, video: true };
-			
-			sfutest.send({ message: publish, jsep: jsep });
-		},
-		error: function(error) {
-			Janus.error("WebRTC error:", error);
-			if(useAudio) {
-					publishOwnFeed(false);
-			} else {
-				bootbox.alert("WebRTC error... " + error.message);
-				$('#publish').removeAttr('disabled').click(function() { publishOwnFeed(true); });
-			}
-		}
-	});
-}
-
-//화면 공유
-async function publishOwnFeed2(useAudio) {
 	// Publish our stream
-	alert(publishOwnFeed)
-	//$('#publish').attr('disabled', true).unbind('click');
-
-	try{
-		const screenStream = await navigator.mediaDevices.getDisplayMedia({
-         video: true,
-         audio: false,
-      });
-	
-
-		sfutest.createOffer(
+	alert("publishOwnFeed() : 내 화상화면 시작")
+	$('#publish').attr('disabled', true).unbind('click');
+	sfutest.createOffer(
 		{
-			stream: screenStream,
-			media: { audioRecv: false, videoRecv: false, audioSend: useAudio, videoSend: true },	
+			/*
+			//오디오 비디오 수신 : audioRecv, videoRecv
+			//오디오 비디오 송신 : audioSend, videoSend
+			WebRTC 피어 단계 - 브라우저 간의 WebRTC 설정 단계, 현재 subscribe 구독자 브라우저기 때문에 
+			수신은 true, 송신은 false
+			*/
+			media: { audioRecv: true, videoRecv: true, audioSend: false, videoSend: false },	// Publishers are sendonly
+			
 			simulcast: doSimulcast,
 			simulcast2: doSimulcast2,
 			success: function(jsep) {
 				Janus.debug("Got publisher SDP!", jsep);
-				var publish = { request: "configure", audio: useAudio, video: true };
+				/*
+				클라이언트가 야누스 서버 플러그인에 대한 오디오, 비디오 설정을 보낸다
+
+				VideoRoom 플러그인의 주요 요청 명령어는 다음과 같습니다:
+
+				join: 방에 참가.
+				publish: 자신의 스트림을 방에 송출.
+				subscribe: 특정 스트림을 구독.
+				configure: 미디어 트랙 구성 변경.
+				leave: 방을 떠남.
+
 				
-				sfutest.send({ message: publish, jsep: jsep });
+				var publish = { request: "configure", audio: true, video: true };
+				sfutest.send({ message: publish });
+				
+				var subscribe = { request: "subscribe", streams: [{ feed: parseInt(방번호) }] };
+				streams: [{ feed: 1234, mid: "video" }] 특정 미디어 video만 수신
+				
+				sfutest.send({ message: subscribe });
+				*/
+				
+				//조건은 안맞지만 실행은 된다
+				//var publish = { request: "configure", audio: false, video: false };
+
+				var subscribe = { request: "subscribe", streams: [{ feed: parseInt(9934527) }] };
+				
+				
+				sfutest.send({ message: subscribe, jsep: jsep });
 			},
 			error: function(error) {
 				Janus.error("WebRTC error:", error);
@@ -419,9 +537,6 @@ async function publishOwnFeed2(useAudio) {
 				}
 			}
 		});
-	} catch (err) {
-      console.error("화면 공유 실패:", err);
-   }
 }
 
 // [jsflux] 음소거
@@ -446,6 +561,7 @@ function unpublishOwnFeed() {
 
 // [jsflux] 새로운 유저 들어왔을때
 function newRemoteFeed(id, display, audio, video) {
+	alert("newRemoteFeed() : 새로운 유저 들어왔을 때 id:"+id+" ,video:"+video)
 	// A new feed has been published, create a new plugin handle and attach to it as a subscriber
 	var remoteFeed = null;
 	janus.attach(
@@ -453,6 +569,10 @@ function newRemoteFeed(id, display, audio, video) {
 			plugin: "janus.plugin.videoroom",
 			opaqueId: opaqueId,
 			success: function(pluginHandle) {
+				console.log("아래쪽 success")
+				console.log(pluginHandle)
+				alert("아래쪽 success")
+
 				remoteFeed = pluginHandle;
 				remoteFeed.simulcastStarted = false;
 				Janus.log("Plugin attached! (" + remoteFeed.getPlugin() + ", id=" + remoteFeed.getId() + ")");
@@ -460,7 +580,7 @@ function newRemoteFeed(id, display, audio, video) {
 				// We wait for the plugin to send us an offer
 				var subscribe = {
 					request: "join",
-					room: room,
+					room: myroom,
 					ptype: "subscriber",
 					feed: id,
 					private_id: mypvtid
@@ -485,8 +605,10 @@ function newRemoteFeed(id, display, audio, video) {
 				bootbox.alert("Error attaching plugin... " + error);
 			},
 			onmessage: function(msg, jsep) {
+				console.log("아래쪽 onmessage")
 				console.log(msg)
-				alert("다른 사람이 들어왔을 때 onmessage의 msg")
+				alert("아래쪽 onmessage")
+
 				Janus.debug(" ::: Got a message (subscriber) :::", msg);
 				var event = msg["videoroom"];
 				Janus.debug("Event: " + event);
@@ -540,7 +662,7 @@ function newRemoteFeed(id, display, audio, video) {
 							media: { audioSend: false, videoSend: false },	// We want recvonly audio/video
 							success: function(jsep) {
 								Janus.debug("Got SDP!", jsep);
-								var body = { request: "start", room: room };
+								var body = { request: "start", room: myroom };
 								remoteFeed.send({ message: body, jsep: jsep });
 							},
 							error: function(error) {
@@ -557,13 +679,18 @@ function newRemoteFeed(id, display, audio, video) {
 				Janus.log("Janus says this WebRTC PeerConnection (feed #" + remoteFeed.rfindex + ") is " + (on ? "up" : "down") + " now");
 			},
 			onlocalstream: function(stream) {
-				console.log(stream)
-				alert("다른 사람이 들어왔을 때 onlocalstream")
 				// The subscriber stream is recvonly, we don't expect anything here
+
+				console.log("아래쪽 onlocalstream")
+				console.log(stream)
+				alert("아래쪽 onlocalstream")
 			},
 			onremotestream: function(stream) {
-				console.log(stream);
-				alert("다른 사람이 들어왔을 때 onremotestream")
+
+				console.log("아래쪽 onremotestream")
+				console.log(stream)
+				alert("아래쪽 onremotestream")
+
 				Janus.debug("Remote feed #" + remoteFeed.rfindex + ", stream:", stream);
 				var addButtons = false;
 				if($('#remotevideo'+remoteFeed.rfindex).length === 0) {

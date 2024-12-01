@@ -6,14 +6,6 @@ var janus = null;
 var sfutest = null;
 var opaqueId = "videoroomtest-"+Janus.randomString(12);
 
-var myroom = 1234;	// Demo room
-if(getQueryStringValue("room") !== "")
-	myroom = parseInt(getQueryStringValue("room"));
-var myusername = null;
-var myid = null;
-var mystream = null;
-var mypvtid = null;
-
 var feeds = [];
 var bitrateTimer = [];
 
@@ -173,28 +165,12 @@ function registerUsername() {
                 room = result["room"];
                 console.log("Screen sharing session created: " + room);
 
-					 //생성된 방에 자신을 참여 시킴
-              /*  var username = $('#username').val(); //myusername = randomString(12);
-                var register = { "request": "join", "room": myroom, "ptype": "publisher", "display": username };
-                myusername = username;
-                sfutest.send({"message": register}); */
-
+					//방과 사용자 이름을 get으로 넘긴다
 					 location.href = "./myVideoRoom.html?username="+username+"&room="+room;
-
-					 /*
-					 사용자의 방 참여를 요청합니다.
-					register 객체:
-					request: "join": 방에 참여 요청.
-					room: 생성된 방 번호를 지정.
-					ptype: "publisher": 이 클라이언트는 방에 미디어를 송출하는 역할을 담당.
-					display: 방 참여 시 표시될 사용자 이름.
-					요청이 성공하면 사용자는 방에 **퍼블리셔(방송 송출자)**로 참여합니다.
-					 */
             }
         }});
 	}
 }
-
 
 // Helper to parse query string
 function getQueryStringValue(name) {

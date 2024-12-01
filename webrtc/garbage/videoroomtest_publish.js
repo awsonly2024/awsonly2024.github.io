@@ -128,7 +128,7 @@ $(document).ready(function() {
 												$('#videojoin').hide();
 												$('#videos').removeClass('hide').show();
 											} else {
-												publishOwnFeed(true);
+												publishOwnFeed(true); //subscriber_mode가 아니면 내 화면 출력
 											}
 											// Any new feed to attach to?
 											if(msg["publishers"]) {

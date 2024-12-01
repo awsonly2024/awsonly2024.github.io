@@ -48,10 +48,6 @@ $(document).ready(function() {
 								plugin: "janus.plugin.videoroom",
 								opaqueId: opaqueId,
 								success: function(pluginHandle) {
-									console.log("위쪽 success")
-									console.log(pluginHandle)
-									alert("위쪽 success")
-
 									$('#details').remove();
 									sfutest = pluginHandle;
 									Janus.log("Plugin attached! (" + sfutest.getPlugin() + ", id=" + sfutest.getId() + ")");
@@ -102,18 +98,17 @@ $(document).ready(function() {
 								/*
 								** Janus에서 비디오룸 관련 메시지를 받을 때 호출됩니다. **
 								Janus WebRTC Gateway에서 비디오 룸 플러그인(videoroom)의 이벤트를 처리하는 함수입니다. 사용자가 방에 참여하거나 새로운 참가자가 들어올 때, 또는 방이 삭제되는 등의 이벤트에 대해 적절한 동작을 수행하도록 설계되었습니다.
-								"joined": 방에 성공적으로 참여.
+								"joined": 방에 성공적으로 참여-자신이 만들든 기존에 있던 방에 참여하든 "방만들기" 버튼을 눌러 registerUsername()가 실행되면 호출
 								"destroyed": 방이 삭제됨.
-								"event": 방 내에서 새로운 피드(publisher)가 추가되거나, 기존 피드가 변경됨.
+								"event": 방 내에서 새로운 피드(publisher)가 추가되거나, 기존 피드가 변경되는 경우 발생 - 방장인 경우 : 누군가 들어왔기 때문에 방장 측에서 발생, 참여자는 새로운 방에 입장했기 때문에 발생. 즉 방장 측과 새로운 참여자 전부 각각 발생
 
 								jsep는 보통 아래 두 가지 중 하나의 SDP 메시지를 포함합니다:
 								Offer: 클라이언트가 연결을 제안할 때 생성.
 								Answer: Offer를 수락할 때 생성.
 								*/
 								onmessage: function(msg, jsep) {
-									console.log("위쪽 onmessage")
-									console.log(msg)
-									alert("위쪽 onmessage")
+									
+									//alert("msg:"+msg+" ,jsep:"+jsep);
 
 									Janus.debug(" ::: Got a message (publisher) :::", msg);
 									var event = msg["videoroom"];
@@ -124,11 +119,12 @@ $(document).ready(function() {
 											myid = msg["id"];
 											mypvtid = msg["private_id"];
 											Janus.log("Successfully joined room " + msg["room"] + " with ID " + myid);
-											if(subscriber_mode) {
-												$('#videojoin').hide();
+											$('#videojoin').hide();
 												$('#videos').removeClass('hide').show();
+											if(subscriber_mode) {
+												
 											} else {
-												publishOwnFeed(true);
+												//publishOwnFeed(true);
 											}
 											// Any new feed to attach to?
 											if(msg["publishers"]) {
@@ -247,10 +243,6 @@ $(document).ready(function() {
 								사용자가 자신의 비디오와 오디오를 캡처한 미디어 스트림입니다. 예를 들어, 사용자가 웹캠을 활성화하거나 마이크를 켤 때 생성되는 스트림입니다.
 								*/
 								onlocalstream: function(stream) {
-									console.log("위쪽 onlocalstream")
-									console.log(stream)
-									alert("위쪽 onlocalstream")
-
 									Janus.debug(" ::: Got a local stream :::", stream);
 									mystream = stream;
 									$('#videojoin').hide();
@@ -301,10 +293,6 @@ $(document).ready(function() {
 								*/
 								onremotestream: function(stream) {
 									// The publisher stream is sendonly, we don't expect anything here
-
-									console.log("위쪽 onremotestream")
-									console.log(stream)
-									alert("위쪽 onremotestream")
 								},
 								/*
 								이 함수는 스트림이 중단되었을 때 사용자의 UI와 상태를 초기화하는 역할을 합니다. 이후 사용자가 원한다면 Publish 버튼을 통해 새로운 스트림을 퍼블리시할 수 있습니다.
@@ -347,8 +335,6 @@ function checkEnter(field, event) {
 
 // [jsflux] 방생성 및 조인
 function registerUsername() {
-	alert("registerUsername() : 방생성 및 조인");
-
 	if($('#roomname').length === 0) {
 		// Create fields to register
         $('#register').click(registerUsername);
@@ -409,8 +395,7 @@ function registerUsername() {
             publishers: 6,
             bitrate : 128000,
             fir_freq : 10,
-            //ptype: "publisher",
-				ptype: "publisher",
+            ptype: "publisher",
             description: "test",
             is_private: false
         }
@@ -444,7 +429,7 @@ function registerUsername() {
 }
 
 // [jsflux] 방 참여자
-function participantsList(room){
+/* function participantsList(room){
     var listHtml = "";
     var roomPQuery = {
         "request" : "listparticipants",
@@ -463,31 +448,23 @@ function participantsList(room){
         listHtml += '</table>';
         $("#room_" + room).html(listHtml);
     }});
-} 
+} */
 
 // [jsflux] 내 화상화면 시작
 function publishOwnFeed(useAudio) {
 	// Publish our stream
-	alert("publishOwnFeed() : 내 화상화면 시작")
+	
 	$('#publish').attr('disabled', true).unbind('click');
 	sfutest.createOffer(
 		{
-			/*
-			//오디오 비디오 수신 : audioRecv, videoRecv
-			//오디오 비디오 송신 : audioSend, videoSend
-			WebRTC 피어 단계 - 브라우저 간의 WebRTC 설정 단계, 현재 subscribe 구독자 브라우저기 때문에 
-			수신은 true, 송신은 false
-			*/
-			media: { audioRecv: true, videoRecv: true, audioSend: false, videoSend: false },	// Publishers are sendonly
-			
+			//Publishers는 현재 브라우저 사용자로 참가자가 된다, videoSend와 video전부 false로..
+			media: { audioRecv: false, videoRecv: false, audioSend: useAudio, videoSend: false },	// Publishers are sendonly
 			simulcast: doSimulcast,
 			simulcast2: doSimulcast2,
 			success: function(jsep) {
 				Janus.debug("Got publisher SDP!", jsep);
-				//클라이언트가 야누스 서버 플러그인에 대한 오디오, 비디오 설정을 보낸다
-				var publish = { request: "configure", audio: false, video: false };
-				//var subscribe = { request: "configure", audio: false, video: false };
-				
+				//var publish = { request: "configure", audio: useAudio, video: true };
+				var publish = { request: "configure", audio: useAudio, video: false };
 				sfutest.send({ message: publish, jsep: jsep });
 			},
 			error: function(error) {
@@ -524,7 +501,6 @@ function unpublishOwnFeed() {
 
 // [jsflux] 새로운 유저 들어왔을때
 function newRemoteFeed(id, display, audio, video) {
-	alert("newRemoteFeed() : 새로운 유저 들어왔을 때 id:"+id+" ,video:"+video)
 	// A new feed has been published, create a new plugin handle and attach to it as a subscriber
 	var remoteFeed = null;
 	janus.attach(
@@ -532,10 +508,6 @@ function newRemoteFeed(id, display, audio, video) {
 			plugin: "janus.plugin.videoroom",
 			opaqueId: opaqueId,
 			success: function(pluginHandle) {
-				console.log("아래쪽 success")
-				console.log(pluginHandle)
-				alert("아래쪽 success")
-
 				remoteFeed = pluginHandle;
 				remoteFeed.simulcastStarted = false;
 				Janus.log("Plugin attached! (" + remoteFeed.getPlugin() + ", id=" + remoteFeed.getId() + ")");
@@ -568,10 +540,6 @@ function newRemoteFeed(id, display, audio, video) {
 				bootbox.alert("Error attaching plugin... " + error);
 			},
 			onmessage: function(msg, jsep) {
-				console.log("아래쪽 onmessage")
-				console.log(msg)
-				alert("아래쪽 onmessage")
-
 				Janus.debug(" ::: Got a message (subscriber) :::", msg);
 				var event = msg["videoroom"];
 				Janus.debug("Event: " + event);
@@ -643,17 +611,8 @@ function newRemoteFeed(id, display, audio, video) {
 			},
 			onlocalstream: function(stream) {
 				// The subscriber stream is recvonly, we don't expect anything here
-
-				console.log("아래쪽 onlocalstream")
-				console.log(stream)
-				alert("아래쪽 onlocalstream")
 			},
 			onremotestream: function(stream) {
-
-				console.log("아래쪽 onremotestream")
-				console.log(stream)
-				alert("아래쪽 onremotestream")
-
 				Janus.debug("Remote feed #" + remoteFeed.rfindex + ", stream:", stream);
 				var addButtons = false;
 				if($('#remotevideo'+remoteFeed.rfindex).length === 0) {
