@@ -128,7 +128,6 @@ function publisher_mode() {
 			return;
 		}
 		
-		alert(broadcastModeSelect)
 		if(broadcastModeSelect === "0"){ //회의 모드의 판매자 1
 			location.href = "./detailMeeting.html?username="+username+"&room="+room+"&usermode=1";
 		}else if(broadcastModeSelect === 1){ //개인 방송 모드의 판매자 1
@@ -167,12 +166,11 @@ function subscriber_mode(){
 		return;
 	}
 
-	alert(broadcastModeSelect)
-		if(broadcastModeSelect === "0"){ //회의 모드의 구매자 0
-			location.href = "./detailMeeting.html?username="+username+"&room="+room+"&usermode=0";
-		}else if(broadcastModeSelect === 1){ //개인 방송 모드의 구매자 0
-			location.href = "./detailPersonal.html?username="+username+"&room="+room+"&usermode=0";
-		}else{
-			console.log("broadcastModeSelect error");
-		}
+	if(broadcastModeSelect === "0"){ //회의 모드의 구매자 0
+		location.href = "./detailMeeting.html?username="+username+"&room="+room+"&usermode=0";
+	}else if(broadcastModeSelect === 1){ //개인 방송 모드의 구매자 0
+		location.href = "./detailPersonal.html?username="+username+"&room="+room+"&usermode=0";
+	}else{
+		console.log("broadcastModeSelect error");
+	}
 }
