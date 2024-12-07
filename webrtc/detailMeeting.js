@@ -131,7 +131,6 @@ $(document).ready(function() {
 									publishOwnFeed(true); //내 화면 설정
 									
 									if(msg["publishers"]) { //기존 방에 있는 사람들 정보
-										alert("join-publisher")
 										var list = msg["publishers"];
 										
 										console.log("밑에 list는 기존 방에 있는 사람들 정보여야 한다")
