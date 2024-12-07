@@ -170,7 +170,6 @@ $(document).ready(function() {
 								} else if(event === "event") { //기존 사람들이 입장하는 사람을 구독
 									// Any new feed to attach to?
 									if(msg["publishers"]) {
-										alert(username+"님이 방에 입장하셨습니다.");
 										var list = msg["publishers"];
 
 										console.log("밑에 list는 방에 입장한 사람의 정보여야 한다");
@@ -449,7 +448,6 @@ function toggleMute() {
 
 // [jsflux] 방나가기
 function unpublishOwnFeed() {
-	alert(username+"님이 나가셨습니다.");
 	// Unpublish our stream
 	//$('#unpublish').attr('disabled', true).unbind('click');
 	//$('#publish').removeAttr('disabled')
