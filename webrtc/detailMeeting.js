@@ -128,6 +128,11 @@ $(document).ready(function() {
 									} else {
 										publishOwnFeed(true);
 									} */
+
+									
+									console.log("event => joined 부분의 msg");
+									console.log(msg);
+
 									publishOwnFeed(true); //내 화면 설정
 									
 									if(msg["publishers"]) { //기존 방에 있는 사람들 정보
@@ -168,6 +173,10 @@ $(document).ready(function() {
 									}); */
 								} else if(event === "event") { //기존 사람들이 입장하는 사람을 구독
 									// Any new feed to attach to?
+
+									console.log("event => event 부분의 msg");
+									console.log(msg);
+
 									if(msg["publishers"]) {
 										var list = msg["publishers"];
 
@@ -264,7 +273,7 @@ $(document).ready(function() {
 								}
 							}
 						},
-						onlocalstream: function(stream) {
+						onlocalstream: function(stream) { //WebRTC 연결이 생성된 후 사용자의 카메라/마이크 스트림이 성공적으로 로드되었을 때 호출
 							Janus.debug(" ::: Got a local stream :::", stream);
 							mystream = stream;
 							$('#videojoin').hide();
@@ -376,10 +385,7 @@ function participantsList(room){
 
 // [jsflux] 내 화상화면 시작
 function publishOwnFeed(useAudio) {
-	// Publish our stream
-	//$('#publish').attr('disabled', true).unbind('click');
-	//$('#publish').attr('display', none).unbind('click');
-	//$('#unpublish').removeAttr('disabled')
+
 	$('#publish').css('display','none');
 	$('#unpublish').css('display','block');
 
@@ -419,6 +425,7 @@ function publishOwnFeed(useAudio) {
 			}
 		});
 }
+
 let toggle = true;
 function play(){
 $("#play_stop").on("click",function(){

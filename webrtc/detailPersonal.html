@@ -4,9 +4,27 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>방송 상세 페이지</title>
-<link
-	href="https://fonts.googleapis.com/css2?family=Pretendard:wght@100..900&display=swap"
-	rel="stylesheet">
+
+<script type="text/javascript"
+src="https://cdnjs.cloudflare.com/ajax/libs/webrtc-adapter/6.4.0/adapter.min.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script type="text/javascript"
+src="https://cdnjs.cloudflare.com/ajax/libs/jquery.blockUI/2.70/jquery.blockUI.min.js"></script>
+
+<!-- <script type="text/javascript"
+src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bootbox.js/5.4.0/bootbox.min.js"></script> -->
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/spin.js/2.3.2/spin.min.js"></script>
+<!-- <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.4/toastr.min.js"></script> -->
+
+<script type="text/javascript" src="./janus.js"></script>
+<script type="text/javascript" src="./detailPersonal.js?ver=12"></script>
+
+<!-- chat -->
+<script src="https://cdn.jsdelivr.net/npm/sockjs-client/dist/sockjs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/stompjs/lib/stomp.min.js"></script>
+
+<link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@100..900&display=swap" rel="stylesheet">
 <style>
 /* 페이지 전체 스타일 */
 body {
@@ -26,21 +44,21 @@ body {
 }
 
 .left-side, .broadcast-detail, .chat-section {
-	flex: 1;
+	/* flex: 1; */
 	overflow-y: auto;
 }
 
-/* 왼쪽 사이드 스타일 */
+/* 열른쪽 스타일 (나중에 조회) */
 .left-side {
-	flex: 1 1 20%;
-	min-width: 300px;
+	/* flex: 1 1 20%; */
+	width: 15%;
 	background-color: #f1f1f1;
 	border-radius: 10px;
 	padding: 20px;
 	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-/* 방송 상세 정보 스타일 */
+/* 방송 상세 정보 연습 스타일 */
 .broadcast-container {
 	display: flex;
 	flex-direction: column;
@@ -127,53 +145,27 @@ body {
 	transform: scale(1.05);
 }
 
-/* 더보기 메뉴 스타일 */
-.more-menu {
-	position: relative;
-}
-
-.more-menu button {
+/* 채팅창 접기 버튼 스타일 */
+.collapse-button {
 	padding: 10px;
 	background-color: #4b0082;
 	color: #ffffff;
 	border: none;
 	border-radius: 5px;
 	cursor: pointer;
+	transition: background-color 0.3s, transform 0.2s;
 }
 
-.more-options {
-	display: none;
-	position: absolute;
-	bottom: 40px;
-	right: 0;
-	background-color: #ffffff;
-	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-	border-radius: 5px;
-	z-index: 100;
-	padding: 10px;
-}
-
-.more-options button {
-	background-color: #4b0082;
-	color: #ffffff;
-	padding: 10px;
-	border: none;
-	width: 100%;
-	text-align: left;
-	cursor: pointer;
-	border-radius: 3px;
-	margin-bottom: 5px;
-}
-
-.more-options button:hover {
+.collapse-button:hover {
 	background-color: #6a0dad;
+	transform: scale(1.05);
 }
 
-/* 채팅창 스타일 */
+/* 채팅창 연습 스타일 */
 .chat-section {
 	flex: 1;
 	min-width: 300px;
-	background-color: #ffffff;
+	background-color: #e9ecef;
 	border-radius: 10px;
 	padding: 20px;
 	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -181,6 +173,7 @@ body {
 	transition: max-height 0.3s ease, opacity 0.3s ease;
 }
 
+/* 채팅창 허더 스타일 */
 .chat-header {
 	background-color: #4b0082;
 	padding: 10px;
@@ -190,22 +183,25 @@ body {
 	border-radius: 10px 10px 0 0;
 }
 
+/* 채팅 메시지 박스 스타일 */
 .chat-box {
 	flex: 1;
 	min-height: 300px;
 	max-height: calc(100% - 120px);
 	overflow-y: auto;
-	background-color: #e9ecef;
+	background-color: #ffffff;
 	padding: 10px;
 	margin-bottom: 10px;
 	border-radius: 0 0 10px 10px;
 	border: 1px solid #dee2e6;
 }
 
+/* 채팅 메시지 스타일 */
 .chat-message {
 	margin: 10px 0;
 }
 
+/* 채팅 입력 연습 스타일 */
 .chat-input {
 	display: flex;
 	gap: 10px;
@@ -234,44 +230,71 @@ body {
 	transform: scale(1.05);
 }
 
+/* 채팅창 접히지 않은 상타 스타일 */
 .chat-section.collapsed {
 	max-height: 0;
 	opacity: 0;
 	padding: 0;
 }
 
-.chat-section.collapsed + .broadcast-detail {
+.chat-section.collapsed+.broadcast-detail {
 	flex: 3 1 80%;
 }
 </style>
 <script>
-function toggleChat() {
-    const chatSection = document.querySelector('.chat-section');
-    const broadcastDetail = document.querySelector('.broadcast-detail');
+	let stompClient = null;
 
-    if (chatSection.style.display === 'none') {
-        chatSection.style.display = 'block';
-        broadcastDetail.style.flex = '8';
-        document.querySelector('.collapse-button').innerHTML = '접기◀';
-    } else {
-        chatSection.style.display = 'none';
-        broadcastDetail.style.flex = '11';
-        document.querySelector('.collapse-button').innerHTML = '▶펼치기';
-    }
-}
+	function toggleChat() {
+		const chatSection = document.querySelector('.chat-section');
+		const broadcastDetail = document.querySelector('.broadcast-detail');
+		if (chatSection.classList.contains('collapsed')) {
+			chatSection.classList.remove('collapsed');
+			broadcastDetail.style.flex = '3 1 60%';
+			document.querySelector('.collapse-button').innerHTML = '접기◀';
+		} else {
+			chatSection.classList.add('collapsed');
+			broadcastDetail.style.flex = '3 1 80%';
+			document.querySelector('.collapse-button').innerHTML = '▶펼치기';
+		}
+	}
+	//chat
+	function connect(){
+		const socket = new SockJS("/chat");
+		stompClient = Stomp.over(socket);
+		//topic : 서버에서 보낸 메세지
+		stompClient.connect({}, (frame) => {
+			stompClient.subscribe('/topic/messages', (message) => {
+				showMessage(JSON.parse(message.body))
+			})
+		})
+	}
 
-function togglePauseResume(button) {
-    if (button.innerHTML === '화면 정지') {
-        button.innerHTML = '화면 시작';
-    } else {
-        button.innerHTML = '화면 정지';
-    }
-}
+	function sendMessage(){
+		const sender = document.getElementById("sender").innerText;
+		const contents = document.getElementById("message").value;
+		//app : 클라이언트에서 보내는 메세지
+		stompClient.send('/app/sendMessage', {} , JSON.stringify({sender, contents}));
+	}
 
-function toggleMoreMenu() {
-    const moreOptions = document.querySelector('.more-options');
-    moreOptions.style.display = moreOptions.style.display === 'block' ? 'none' : 'block';
-}
+	function showMessage(message){
+		let messageDiv = document.getElementById("messages");
+		const messageElem = document.createElement('p');
+		messageElem.contentEditable = true;
+
+		//message = JSON.parse(message);
+		let sender = message.sender;
+		let contents = message.contents;
+
+		messageElem.textContent = sender + " : " + contents;
+
+		console.log(message)
+		console.log(messageElem)
+		messageDiv.appendChild(messageElem);
+
+		document.getElementById("message").value = "";
+	}
+
+		//connect();
 </script>
 </head>
 <body>
@@ -285,7 +308,7 @@ function toggleMoreMenu() {
 		<!-- 방송 화면 -->
 		<div class="broadcast-detail">
 			<div class="broadcast-image">
-				<img src="/images/seoul_banner.jpg" alt="방송 이미지">
+				<div class="panel-body" id="videolocal"></div>
 			</div>
 		</div>
 
@@ -298,40 +321,34 @@ function toggleMoreMenu() {
 				<div class="profile-banner">
 					<img src="/images/profile.jpg" alt="방송중인 사람 프로필 이미지" class="profile-image">
 					<div class="broadcaster-info">
-						<h2>방송자 닉네임</h2>
+						<h2></h2>
 						<p>사용자 등급: 키워드</p>
 						<div class="keywords">키워드: 방송, 뉴스, 게임</div>
 					</div>
 				</div>
 			</div>
 
-			<!-- 음소거 및 화면정지 기타 기능 -->
+			<!-- 녹화 및 화면공유 -->
 			<div class="recoding-buttons">
-				<button>음소거</button>
-				<button class="pause-resume-button" onclick="togglePauseResume(this)">화면 정지</button>
-				<!-- 더보기 메뉴 버튼 -->
-				<div class="more-menu">
-					<button onclick="toggleMoreMenu()">더보기</button>
-					<div class="more-options">
-						<button>녹화</button>
-						<button>화면 공유</button>
-					</div>
-				</div>
+				<button id="unpublish">중지</button>
+            <button id="publish">실행</button>
+				<button>화면공유</button>
+				<!-- 채팅창 접기 버튼 -->
 				<button class="collapse-button" onclick="toggleChat()">접기◀</button>
 			</div>
 		</div>
 	</div>
 
-	<!-- 채팅창 -->
+	<!-- 채팅창 연습 -->
 	<div class="chat-section">
 		<div class="chat-header">채팅창</div>
-		<div class="chat-box">
-			<div class="chat-message">사용자1: 안녕하세요!</div>
-			<div class="chat-message">사용자2: 오늘 방송 기대되요!</div>
+		<div class="chat-box" id="messages">
+			
 		</div>
 		<div class="chat-input">
-			<input type="text" placeholder="메시지를 입력하세요...">
-			<button>전송</button>
+			<span id="sender" style="font-size:15px;font-style:bold"></span>
+			<input type="text" id="message" placeholder="메시지를 입력하세요...">
+			<button onclick="sendMessage()">전송</button>
 		</div>
 	</div>
 </body>
