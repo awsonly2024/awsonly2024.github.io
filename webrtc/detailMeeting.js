@@ -170,7 +170,7 @@ $(document).ready(function() {
 								} else if(event === "event") { //기존 사람들이 입장하는 사람을 구독
 									// Any new feed to attach to?
 									if(msg["publishers"]) {
-										alert("event-publihser");
+										alert(username+"님이 방에 입장하셨습니다.");
 										var list = msg["publishers"];
 
 										console.log("밑에 list는 방에 입장한 사람의 정보여야 한다");
@@ -376,7 +376,6 @@ function participantsList(room){
 
 // [jsflux] 내 화상화면 시작
 function publishOwnFeed(useAudio) {
-	alert("재생");
 	// Publish our stream
 	//$('#publish').attr('disabled', true).unbind('click');
 	//$('#publish').attr('display', none).unbind('click');
@@ -450,7 +449,7 @@ function toggleMute() {
 
 // [jsflux] 방나가기
 function unpublishOwnFeed() {
-	alert("중지")
+	alert(username+"님이 나가셨습니다.");
 	// Unpublish our stream
 	//$('#unpublish').attr('disabled', true).unbind('click');
 	//$('#publish').removeAttr('disabled')
