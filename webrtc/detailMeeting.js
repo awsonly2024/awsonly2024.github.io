@@ -579,11 +579,11 @@ function newRemoteFeed(id, display, audio, video) {
 				if($('#remotevideo'+remoteFeed.rfindex).length === 0) {
 					addButtons = true;
 					// No remote video yet
-					$('#videoremote'+remoteFeed.rfindex).append('<video class="rounded centered" id="waitingvideo' + remoteFeed.rfindex + '" width="100%" height="310px" />');
-					$('#videoremote'+remoteFeed.rfindex).append('<video class="rounded centered relative hide" id="remotevideo' + remoteFeed.rfindex + '" width="100%" height="310px" autoplay playsinline/>');
+					$('#videoremote'+remoteFeed.rfindex).append('<video class="rounded centered" id="waitingvideo' + remoteFeed.rfindex + '" width="100%" height="250px" />');
+					$('#videoremote'+remoteFeed.rfindex).append('<video class="rounded centered relative hide" id="remotevideo' + remoteFeed.rfindex + '" width="100%" height="250px" autoplay playsinline/>');
 					$('#videoremote'+remoteFeed.rfindex).before(
-						'<span class="label label-primary hide" id="curres'+remoteFeed.rfindex+'" style="position: relative; top: 5px; left: 0px; margin: 1px;"></span>' +
-						'<span class="label label-info hide" id="curbitrate'+remoteFeed.rfindex+'" style="position: relative; top: 5px; right: 0px; margin: 1px;"></span>');
+						'<span class="label label-primary hide" id="curres'+remoteFeed.rfindex+'" style="position: relative; top: 5px; left: 0px; margin-right: 5px;"></span>' +
+						'<span class="label label-info hide" id="curbitrate'+remoteFeed.rfindex+'" style="position: relative; top: 5px; right: 0px; margin-left: 5px;"></span>');
 					// Show the video, hide the spinner and show the resolution when we get a playing event
 					$("#remotevideo"+remoteFeed.rfindex).bind("playing", function () {
 						if(remoteFeed.spinner)
