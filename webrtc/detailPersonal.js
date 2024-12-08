@@ -307,7 +307,7 @@ $(document).ready(function() {
 								}
 							}
 							$('#publisher').html(username);	
-							$('#publisher2').html(username);
+							/* $('#publisher2').html(username); */
 							Janus.attachMediaStream($('#myvideo').get(0), stream);
 							$("#myvideo").get(0).muted = "muted";
 							if(sfutest.webrtcStuff.pc.iceConnectionState !== "completed" &&
@@ -409,30 +409,48 @@ function participantsList(room){
 function publishOwnFeed(useAudio) {
 
 	$('#publish').attr('disabled', true).unbind('click');
+	
+	var mediaset = null;
+	var publishset = null;
+	if(usermode === "1"){ //판매자
+		mediaset = {
+			audioRecv : false,
+			videoRecv : false,
+			audioSend : true,
+			videoSend : true
+		},
+
+		publishset = {
+			request : "configure",
+			audio : true,
+			video : true
+		}			
+	}else{ //구매자
+		mediaset = {
+			audioRecv : true,
+			videoRecv : true,
+			audioSend : false,
+			videoSend : false
+		},
+
+		publishset = {
+			request : "configure",
+			audio : false,
+			video : false
+		}	
+	}
 
 	sfutest.createOffer(
 		{
-			// Add data:true here if you want to publish datachannels as well
-			//media: { audioRecv: true, videoRecv: true, audioSend: useAudio, videoSend: true },	// Publishers are sendonly
-			media: { audioRecv: false, videoRecv: false, audioSend: useAudio, videoSend: true },	// 
-			// If you want to test simulcasting (Chrome and Firefox only), then
-			// pass a ?simulcast=true when opening this demo page: it will turn
-			// the following 'simulcast' property to pass to janus.js to true
+
+			/* media: { audioRecv: false, videoRecv: false, audioSend: useAudio, videoSend: true }, */
+			media : mediaset,
 			simulcast: doSimulcast,
 			simulcast2: doSimulcast2,
 			success: function(jsep) {
 				Janus.debug("Got publisher SDP!", jsep);
-				var publish = { request: "configure", audio: useAudio, video: true };
-				// You can force a specific codec to use when publishing by using the
-				// audiocodec and videocodec properties, for instance:
-				// 		publish["audiocodec"] = "opus"
-				// to force Opus as the audio codec to use, or:
-				// 		publish["videocodec"] = "vp9"
-				// to force VP9 as the videocodec to use. In both case, though, forcing
-				// a codec will only work if: (1) the codec is actually in the SDP (and
-				// so the browser supports it), and (2) the codec is in the list of
-				// allowed codecs in a room. With respect to the point (2) above,
-				// refer to the text in janus.plugin.videoroom.jcfg for more details
+				/* var publish = { request: "configure", audio: useAudio, video: true }; */
+				var publish = publishset
 				sfutest.send({ message: publish, jsep: jsep });
 			},
 			error: function(error) {
@@ -462,11 +480,6 @@ function toggleMute() {
 
 // [jsflux] 방나가기
 function unpublishOwnFeed() {
-	// Unpublish our stream
-	//$('#unpublish').attr('disabled', true).unbind('click');
-	//$('#publish').removeAttr('disabled')
-	//$('#publish').css('display','block');
-	//$('#unpublish').css('display','none');
 
 	$('#unpublish').attr('disabled', true).unbind('click');
 
@@ -594,12 +607,12 @@ function newRemoteFeed(id, display, audio, video) {
 				if($('#remotevideo'+remoteFeed.rfindex).length === 0) {
 					addButtons = true;
 					// No remote video yet
-					$('#videoremote'+remoteFeed.rfindex).append('<video class="rounded centered" id="waitingvideo' + remoteFeed.rfindex + '" width="100%" height="250px" />');
-					$('#videoremote'+remoteFeed.rfindex).append('<video class="rounded centered relative hide" id="remotevideo' + remoteFeed.rfindex + '" width="100%" height="250px" autoplay playsinline/>');
-					$('#videoremote'+remoteFeed.rfindex).before(
-						'<span class="label label-primary hide" id="curres'+remoteFeed.rfindex+'" style="position: relative; top: 5px; left: 0px; margin-right: 5px;"></span>' +
-						'<span class="label label-info hide" id="curbitrate'+remoteFeed.rfindex+'" style="position: relative; top: 5px; right: 0px; margin-left: 5px;"></span>');
-					// Show the video, hide the spinner and show the resolution when we get a playing event
+					 
+					$('#videoremote'+remoteFeed.rfindex).append('<video class="rounded centered" id="waitingvideo' + remoteFeed.rfindex + '" width="100%" height="100%" />');
+					$('#videoremote'+remoteFeed.rfindex).append('<video class="rounded centered relative hide" id="remotevideo' + remoteFeed.rfindex + '" width="100%" height="100%" autoplay playsinline/>');
+					/* $('#videoremote'+remoteFeed.rfindex).before(
+						'<span class="label label-primary hide" id="curres'+remoteFeed.rfindex+'" style="position: relative; top: 5px; left: 0px; margin-right: 5px;padding:5px"></span>' +
+						'<span class="label label-info hide" id="curbitrate'+remoteFeed.rfindex+'" style="position: relative; top: 5px; right: 0px; margin-left: 5px;padding:5px"></span>'); */
 					$("#remotevideo"+remoteFeed.rfindex).bind("playing", function () {
 						if(remoteFeed.spinner)
 							remoteFeed.spinner.stop();

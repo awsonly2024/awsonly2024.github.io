@@ -64,6 +64,7 @@ body {
 	flex-direction: column;
 	height: 100%;
 	gap: 20px;
+	width: 700px;
 }
 
 /* 방송 화면 스타일 */
@@ -308,9 +309,8 @@ body {
 	<div class="broadcast-container">
 		<!-- 방송 화면 -->
 		<div class="broadcast-detail">
-			<div class="broadcast-image">
-				<div class="panel-body" id="videolocal"></div>
-			</div>
+			<div class="panel-body" id="videolocal"></div>
+			<div class="panel-body" id="videoremote1"></div>
 		</div>
 
 		<!-- 방송 정보 -->
@@ -322,7 +322,7 @@ body {
 				<div class="profile-banner">
 					<img src="/images/profile.jpg" alt="방송중인 사람 프로필 이미지" class="profile-image">
 					<div class="broadcaster-info">
-						<h2><span class="label label-primary hide" id="publisher2" style="color:red"></span></h2>
+						<h2><span class="label label-primary hide" id="publisher2" style="color:red">mentor</span></h2>
 						<p>사용자 등급: 키워드</p>
 						<div class="keywords">키워드: 방송, 뉴스, 게임</div>
 					</div>
@@ -331,30 +331,13 @@ body {
 
 			<!-- 녹화 및 화면공유 -->
 			<div class="recoding-buttons">
-				<div id="publishDiv"></div>
-			
-				<!-- <button id="unpublish">중지</button>
-            <button id="publish">실행</button> -->
+				<div id="publishDiv"></div> <!-- start stop button -->
 				<button>화면공유</button>
 				<!-- 채팅창 접기 버튼 -->
 				<button class="collapse-button" onclick="toggleChat()">접기◀</button>
 			</div>
 		</div>
 	</div>
-
-	sdf
-	<div class="panel panel-default">
-		<div class="panel-heading">
-		  <h3 class="panel-title">Remote Video #1 <span class="label label-info hide" id="remote1"></span></h3>
-		</div>
-		<div class="panel-body relative" id="videoremote1"></div>
-	 </div>
-	 <div class="panel panel-default">
-		<div class="panel-heading">
-		  <h3 class="panel-title">Remote Video #2 <span class="label label-info hide" id="remote2"></span></h3>
-		</div>
-		<div class="panel-body relative" id="videoremote2"></div>
-	 </div>
 
 	<!-- 채팅창 연습 -->
 	<div class="chat-section">
@@ -368,5 +351,21 @@ body {
 			<button onclick="sendMessage()">전송</button>
 		</div>
 	</div>
+
+	<script>
+
+		/* js파일에서 받은 변수 usermode를 바로 사용 가능 - 0:구매자, 1:판매자 */
+
+		if(usermode === "0"){
+			$('#publishDiv').hide();
+			$('#videolocal').hide();
+			$('#videoremote1').show();
+		}else if(usermode === "1"){
+			$('#publishDiv').show();
+			$('#videolocal').show();
+			$('#videoremote1').hide();
+		}
+
+	</script>
 </body>
 </html>
