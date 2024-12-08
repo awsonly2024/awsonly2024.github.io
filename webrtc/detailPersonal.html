@@ -240,6 +240,12 @@ body {
 .chat-section.collapsed+.broadcast-detail {
 	flex: 3 1 80%;
 }
+
+.panel-body{
+	width: 300px;
+	height: 300px;
+}
+
 </style>
 <script>
 	let stompClient = null;
@@ -321,7 +327,7 @@ body {
 				<div class="profile-banner">
 					<img src="/images/profile.jpg" alt="방송중인 사람 프로필 이미지" class="profile-image">
 					<div class="broadcaster-info">
-						<h2></h2>
+						<h2><span class="label label-primary hide" id="publisher2" style="color:red"></span></h2>
 						<p>사용자 등급: 키워드</p>
 						<div class="keywords">키워드: 방송, 뉴스, 게임</div>
 					</div>
@@ -339,11 +345,25 @@ body {
 		</div>
 	</div>
 
+	sdf
+	<div class="panel panel-default">
+		<div class="panel-heading">
+		  <h3 class="panel-title">Remote Video #1 <span class="label label-info hide" id="remote1"></span></h3>
+		</div>
+		<div class="panel-body relative" id="videoremote1"></div>
+	 </div>
+	 <div class="panel panel-default">
+		<div class="panel-heading">
+		  <h3 class="panel-title">Remote Video #2 <span class="label label-info hide" id="remote2"></span></h3>
+		</div>
+		<div class="panel-body relative" id="videoremote2"></div>
+	 </div>
+
 	<!-- 채팅창 연습 -->
 	<div class="chat-section">
 		<div class="chat-header">채팅창</div>
 		<div class="chat-box" id="messages">
-			
+		
 		</div>
 		<div class="chat-input">
 			<span id="sender" style="font-size:15px;font-style:bold"></span>

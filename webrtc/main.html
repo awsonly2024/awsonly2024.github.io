@@ -439,6 +439,8 @@ body {
 
 		var modlaTitle1 = document.getElementById('modlaTitle1');
 
+		var txtName = document.getElementById('txtName');
+
 		var dynamicButton = document.getElementById('dynamicButton');
 		/* 
 		getElementsByClassName로 가져오면 적용 X => getElementById로 가져와야 함
@@ -460,6 +462,8 @@ body {
 			title3.value = '방송 만들기';
 
 			modlaTitle1.innerText = '판매자 모드';
+
+			txtName.value = 'mentor';
 
 			dynamicButton.innerHTML = '<button type="button" class="btn btn-primary" id="btn_sellerStart" onclick="publisher_mode()">방송 시작</button>'
 		}else{}

@@ -142,12 +142,7 @@ $(document).ready(function() {
 													var audio = list[f]["audio_codec"];
 													var video = list[f]["video_codec"];
 													Janus.debug("  >> [" + id + "] " + display + " (audio: " + audio + ", video: " + video + ")");
-													
-													if(display === "mentor"){
-														console.log("현재 입장자는 mentor만 구독")
-														console.log(display)
-														newRemoteFeed(id, display, audio, video);
-													}
+													newRemoteFeed(id, display, audio, video);
 												}
 											}
 										} else if(event === "destroyed") {
@@ -169,8 +164,7 @@ $(document).ready(function() {
 													var audio = list[f]["audio_codec"];
 													var video = list[f]["video_codec"];
 													Janus.debug("  >> [" + id + "] " + display + " (audio: " + audio + ", video: " + video + ")");
-
-													if(id === "mentor") newRemoteFeed(id, display, audio, video);
+													newRemoteFeed(id, display, audio, video);
 												}
 											} else if(msg["leaving"]) {
 												// One of the publishers has gone away?
