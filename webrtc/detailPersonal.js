@@ -28,6 +28,13 @@ var doSimulcast = (getQueryStringValue("simulcast") === "yes" || getQueryStringV
 var doSimulcast2 = (getQueryStringValue("simulcast2") === "yes" || getQueryStringValue("simulcast2") === "true");
 var subscriber_mode = (getQueryStringValue("subscriber-mode") === "yes" || getQueryStringValue("subscriber-mode") === "true");
 
+
+/**
+ * 화면이 정상적으로 출력되면 webrtcState 실행 -> unpublish버튼 생성
+ * unpublish버튼을 눌러 unpublishOwnFeed()가 실행 -> 화면이 정상적으로 종료되면 oncleanup 이벤트 발생 -> publish버튼 생성
+ * publish버튼을 눌러 publishOwnFeed()가 실행 -> 화면이 정상적으로 출력되면 onlocalstream이벤트 발생 -> unpublish버튼 생성
+ */
+
 $(document).ready(function() {
 	// Initialize the library (all console debuggers enabled)
 	Janus.init({debug: "all", callback: function() {
@@ -110,6 +117,7 @@ $(document).ready(function() {
 								return false;
 							});
 						},
+						
 						onmessage: function(msg, jsep) {
 							Janus.debug(" ::: Got a message (publisher) :::", msg);
 							var event = msg["videoroom"];
@@ -121,27 +129,11 @@ $(document).ready(function() {
 									mypvtid = msg["private_id"];
 									Janus.log("Successfully joined room " + msg["room"] + " with ID " + myid);
 
-									/* 
-									M to M 은 subscriber모드가 없다
-									if(subscriber_mode) {
-										$('#videojoin').hide();
-										$('#videos').removeClass('hide').show();
-									} else {
-										publishOwnFeed(true);
-									} */
-
-									
-									console.log("event => joined 부분의 msg");
-									console.log(msg);
-
 									publishOwnFeed(true); //내 화면 설정
 									
 									if(msg["publishers"]) { //기존 방에 있는 사람들 정보
 										var list = msg["publishers"];
 										
-										console.log("밑에 list는 기존 방에 있는 사람들 정보여야 한다")
-										console.log(list);
-
 										Janus.debug("Got a list of available publishers/feeds:", list);
 										for(var f in list) {
 											var id = list[f]["id"];
@@ -149,7 +141,21 @@ $(document).ready(function() {
 											var audio = list[f]["audio_codec"];
 											var video = list[f]["video_codec"];
 											Janus.debug("  >> [" + id + "] " + display + " (audio: " + audio + ", video: " + video + ")");
-											newRemoteFeed(id, display, audio, video); 
+											//newRemoteFeed(id, display, audio, video); 
+
+											/* mentor 최초 방을 만든 경우 구독할 사람은 없다 */
+
+											/* mentor가 방을 나갔다가 들어온 경우 기존 방에 참가자들을 mentor가 구독*/
+											if(usermode === "1"){
+												newRemoteFeed(id, display, audio, video);
+											}
+
+											/* 구독자들이 방을 최초 들어온 경우 mentor만 구독 */
+											if(display === "mentor"){
+												console.log("현재 입장자는 mentor만 구독")
+												console.log(display)
+												newRemoteFeed(id, display, audio, video);
+											}
 											/*
 											newRemoteFeed() 메소드 설정 항목
 											var subscribe = {
@@ -191,7 +197,17 @@ $(document).ready(function() {
 											var audio = list[f]["audio_codec"];
 											var video = list[f]["video_codec"];
 											Janus.debug("  >> [" + id + "] " + display + " (audio: " + audio + ", video: " + video + ")");
-											newRemoteFeed(id, display, audio, video);
+											//newRemoteFeed(id, display, audio, video);
+
+											/* mentor가 방에 있는 경우 참가자들 구독 */
+											if(usermode === "1"){ 
+												newRemoteFeed(id, display, audio, video)
+											};
+
+											/* mentor가 방을 나갔다가 들어온 경우 참여자들이 mentor를 구독 */
+											if(display === "mentor"){
+												newRemoteFeed(id, display, audio, video)
+											}
 										}
 									} else if(msg["leaving"]) {
 										// One of the publishers has gone away?
@@ -431,21 +447,6 @@ function publishOwnFeed(useAudio) {
 		});
 }
 
-let toggle = true;
-function play(){
-$("#play_stop").on("click",function(){
-	
-	if(toggle){
-		$(this).text("중지")
-		toggle = false;
-		unpublishOwnFeed();
-	}else{
-		$(this).text("실행");
-		toggle = true;
-		publishOwnFeed(true);
-	}
-})
-}
 
 // [jsflux] 음소거
 function toggleMute() {
