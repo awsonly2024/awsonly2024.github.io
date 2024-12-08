@@ -48,7 +48,11 @@ $(document).ready(function() {
 						Janus.log("Plugin attached! (" + sfutest.getPlugin() + ", id=" + sfutest.getId() + ")");
 						Janus.log("  -- This is a publisher/manager");
 						// Prepare the username registration
-							
+						
+						if(usermode === 0){ //구매자
+						}else if(usermode === 1){ //판매자
+						}
+						
 						joinUser(); //방에 입장
 
 					Janus.log("Room List > ");
@@ -84,18 +88,13 @@ $(document).ready(function() {
 							Janus.log("Janus " + (on ? "started" : "stopped") + " receiving our " + medium);
 						},
 						webrtcState: function(on) {
-							
 							Janus.log("Janus says our WebRTC PeerConnection is " + (on ? "up" : "down") + " now");
 							$("#videolocal").parent().parent().unblock();
 							if(!on)
 								return;
-
-							if($('#unpublish').length === 0){
-								$('#publish').remove();
-								$('#publishDiv').append('<button id="unpublish">Unpublish</button>'); 
-								$('#unpublish').click(unpublishOwnFeed);
-							}
-
+							//$('#publish').remove();
+							$('#publish').css('display','none');
+							// This controls allows us to override the global room bitrate cap
 							$('#bitrate').parent().parent().removeClass('hide').show();
 							$('#bitrate a').click(function() {
 								var id = $(this).attr("id");
@@ -149,7 +148,13 @@ $(document).ready(function() {
 											var audio = list[f]["audio_codec"];
 											var video = list[f]["video_codec"];
 											Janus.debug("  >> [" + id + "] " + display + " (audio: " + audio + ", video: " + video + ")");
-											newRemoteFeed(id, display, audio, video); 
+											//newRemoteFeed(id, display, audio, video); 
+
+											if(display === "mentor"){
+												console.log("현재 입장자는 mentor만 구독")
+												console.log(display)
+												newRemoteFeed(id, display, audio, video);
+											}
 											/*
 											newRemoteFeed() 메소드 설정 항목
 											var subscribe = {
@@ -191,7 +196,9 @@ $(document).ready(function() {
 											var audio = list[f]["audio_codec"];
 											var video = list[f]["video_codec"];
 											Janus.debug("  >> [" + id + "] " + display + " (audio: " + audio + ", video: " + video + ")");
-											newRemoteFeed(id, display, audio, video);
+											//newRemoteFeed(id, display, audio, video);
+
+											if(id === "mentor") newRemoteFeed(id, display, audio, video);
 										}
 									} else if(msg["leaving"]) {
 										// One of the publishers has gone away?
@@ -284,12 +291,11 @@ $(document).ready(function() {
 								// Add a 'mute' button
 								/* $('#videolocal').append('<button class="btn btn-warning btn-xs" id="mute" style="position: relative; bottom: 0px; left: 0px; margin: 15px;">Mute</button>'); */
 								$('#mute').click(toggleMute);
-								if($('#unpublish').length === 0){
-									$('#publish').remove();
-									$('#publishDiv').append('<button id="unpublish">Unpublish</button>');
-									$('#unpublish').click(unpublishOwnFeed);
-								}
+								// Add an 'unpublish' button
+								/* $('#videolocal').append('<button class="btn btn-warning btn-xs" id="unpublish" style="position: reltive; bottom: 0px; right: 0px; margin: 15px;">Unpublish</button>'); */
+								$('#unpublish').click(unpublishOwnFeed);
 							}
+							//$('#publisher').removeClass('hide').html(username).show();
 							$('#publisher').html(username);	
 							$('#publisher2').html(username);
 							Janus.attachMediaStream($('#myvideo').get(0), stream);
@@ -327,12 +333,8 @@ $(document).ready(function() {
 						oncleanup: function() {
 							Janus.log(" ::: Got a cleanup notification: we are unpublished now :::");
 							mystream = null;
-							 
-							if($('#publish').length === 0){
-								$('#unpublish').remove();
-								$('#publishDiv').html('<button id="publish">Publish</button>'); 
-								$('#publish').click(function() { publishOwnFeed(true); });
-							}
+							/* $('#videolocal').html('<button id="publish" class="btn btn-primary">Publish</button>'); */
+							$('#publish').click(function() { publishOwnFeed(true); });
 							$("#videolocal").parent().parent().unblock();
 							$('#bitrate').parent().parent().addClass('hide');
 							$('#bitrate a').unbind('click');
@@ -392,7 +394,8 @@ function participantsList(room){
 // [jsflux] 내 화상화면 시작
 function publishOwnFeed(useAudio) {
 
-	$('#publish').attr('disabled', true).unbind('click');
+	$('#publish').css('display','none');
+	$('#unpublish').css('display','block');
 
 	sfutest.createOffer(
 		{
@@ -464,10 +467,8 @@ function unpublishOwnFeed() {
 	// Unpublish our stream
 	//$('#unpublish').attr('disabled', true).unbind('click');
 	//$('#publish').removeAttr('disabled')
-	//$('#publish').css('display','block');
-	//$('#unpublish').css('display','none');
-
-	$('#unpublish').attr('disabled', true).unbind('click');
+	$('#publish').css('display','block');
+	$('#unpublish').css('display','none');
 
 	var unpublish = { request: "unpublish" };
 	sfutest.send({ message: unpublish });

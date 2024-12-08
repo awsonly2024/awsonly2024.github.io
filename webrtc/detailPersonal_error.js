@@ -12,10 +12,9 @@ var urlParams = new URLSearchParams(window.location.search);
 var username = urlParams.get('username');
 var room = Number(urlParams.get('room'));
 var usermode = urlParams.get('usermode'); //0:구매자, 1:판매자
-
-alert("detialMeeting username:"+ username + " ,room:" + room + " ,usermode:"+usermode);
-//-------------- 
-
+alert("myVideoRoom username"+ username + " ,room:" + room + ',usermode:'+usermode);
+//-------------- * *
+alert("error")
 var myid = null;
 var mystream = null;
 var mypvtid = null;
@@ -23,37 +22,60 @@ var mypvtid = null;
 var feeds = [];
 var bitrateTimer = [];
 
-//화질 설정
 var doSimulcast = (getQueryStringValue("simulcast") === "yes" || getQueryStringValue("simulcast") === "true");
 var doSimulcast2 = (getQueryStringValue("simulcast2") === "yes" || getQueryStringValue("simulcast2") === "true");
 var subscriber_mode = (getQueryStringValue("subscriber-mode") === "yes" || getQueryStringValue("subscriber-mode") === "true");
+
+/**
+ * 판매자 : 1 => publisher
+ * 구매자 : 0 => subscriber
+ * 최초 방을 만든 사람만 publisher, 나머지 입장자는 전부 subscriber
+ * publisher는 모든 subscriber를 구독,
+ * subscriber는 publisher 한 사람만 구독
+ * 
+ * M to M 방식은 publiser와 subscriber가 모두 수신과 송신을 하기 때문에 mentor를 구별할 방법이 없다
+ * 그래서, username이 mentor인지 아닌지로 구별
+ * 
+ * O to M 방식은 pulisher는 송신만, subscriber는 수신만 하기 때문에 
+ * registerUsername()나 publishOwnFeed() 메소드 등을 사용할 때 메소드 안에서 조건을 usermode으로 구분할 수 있다
+ * M to M은 송신과 수신이 일치하기 때문에 구분되는 것이 없다.
+ * 
+ * O to M은 메소드 내부에서 조건을 걸어 송신이냐 수신이냐로 구분
+ * M to M은 mentor인지 아닌지로 메소드 실행여부를 구분
+ */
+
 
 $(document).ready(function() {
 	// Initialize the library (all console debuggers enabled)
 	Janus.init({debug: "all", callback: function() {
 		// Use a button to start the demo
 
-		janus = new Janus(
+			// Create session
+	janus = new Janus(
 		{
 			server: server,
 			success: function() {
 				// Attach to VideoRoom plugin
+
 				janus.attach(
 					{
+						/*
+							start -> stop
+							밑에 부분에 Room Name, My Name, 대화방 참여 나타남
+						*/
 						plugin: "janus.plugin.videoroom",
 						opaqueId: opaqueId,
 						success: function(pluginHandle) {
 							
-						sfutest = pluginHandle;
-						Janus.log("Plugin attached! (" + sfutest.getPlugin() + ", id=" + sfutest.getId() + ")");
-						Janus.log("  -- This is a publisher/manager");
-						// Prepare the username registration
+							sfutest = pluginHandle;
+							Janus.log("Plugin attached! (" + sfutest.getPlugin() + ", id=" + sfutest.getId() + ")");
+							Janus.log("  -- This is a publisher/manager");
 							
-						joinUser(); //방에 입장
+							registerUsername(); //자신을 pubilsher인지 subscriber인지 등록
 
-					Janus.log("Room List > ");
-					//roomList();
-						},
+						Janus.log("Room List > ");
+						//roomList();
+						}  ,
 						error: function(error) {
 							Janus.error("  -- Error attaching plugin...", error);
 							//bootbox.alert("Error attaching plugin... " + error);
@@ -83,19 +105,15 @@ $(document).ready(function() {
 						mediaState: function(medium, on) {
 							Janus.log("Janus " + (on ? "started" : "stopped") + " receiving our " + medium);
 						},
+						//on이면 화면앞에 있는 publish글자를 지우고 화면 활성화
 						webrtcState: function(on) {
-							
 							Janus.log("Janus says our WebRTC PeerConnection is " + (on ? "up" : "down") + " now");
 							$("#videolocal").parent().parent().unblock();
 							if(!on)
 								return;
-
-							if($('#unpublish').length === 0){
-								$('#publish').remove();
-								$('#publishDiv').append('<button id="unpublish">Unpublish</button>'); 
-								$('#unpublish').click(unpublishOwnFeed);
-							}
-
+							//$('#publish').remove();
+							$('#publish').css('display','none');
+							// This controls allows us to override the global room bitrate cap
 							$('#bitrate').parent().parent().removeClass('hide').show();
 							$('#bitrate a').click(function() {
 								var id = $(this).attr("id");
@@ -109,39 +127,58 @@ $(document).ready(function() {
 								sfutest.send({ message: { request: "configure", bitrate: bitrate }});
 								return false;
 							});
-						},
+						}, 
+
+						/*
+						** Janus에서 비디오룸 관련 메시지를 받을 때 호출됩니다. **
+						Janus WebRTC Gateway에서 비디오 룸 플러그인(videoroom)의 이벤트를 처리하는 함수입니다. 사용자가 방에 참여하거나 새로운 참가자가 들어올 때, 또는 방이 삭제되는 등의 이벤트에 대해 적절한 동작을 수행하도록 설계되었습니다.
+
+
+						event===joined 는 방 입장시 1번만 실행
+						나머지 모든 이벤트는 event===event로 호출
+
+						"joined": 방에 성공적으로 참여.
+						"destroyed": 방이 삭제됨.
+						"event": 방 내에서 새로운 피드(publisher)가 추가되거나, 기존 피드가 변경됨.
+
+						jsep는 보통 아래 두 가지 중 하나의 SDP 메시지를 포함합니다:
+						Offer: 클라이언트가 연결을 제안할 때 생성.
+						Answer: Offer를 수락할 때 생성.
+						*/
 						onmessage: function(msg, jsep) {
 							Janus.debug(" ::: Got a message (publisher) :::", msg);
 							var event = msg["videoroom"];
 							Janus.debug("Event: " + event);
+							console.log("msg");
+							console.log(msg);
 							if(event) {
-								if(event === "joined") { //입장하는 사람이 기존 사람들을 구독
-									
+								if(event === "joined") { //페이지 로드된 자신이 join
+
+									alert("event == joined");
+
 									myid = msg["id"];
 									mypvtid = msg["private_id"];
 									Janus.log("Successfully joined room " + msg["room"] + " with ID " + myid);
-
-									/* 
-									M to M 은 subscriber모드가 없다
-									if(subscriber_mode) {
+									/* if(subscriber_mode) {
 										$('#videojoin').hide();
 										$('#videos').removeClass('hide').show();
 									} else {
 										publishOwnFeed(true);
 									} */
+									publishOwnFeed(true); //화면 송출 설정
 
-									
-									console.log("event => joined 부분의 msg");
-									console.log(msg);
+									/**
+									 * 1) mentor가 최초 입장, newRemoteFeed를 수행할 list가 없음
+									 * 2) subscriber가 입장, mentor만 newRemoteFeed로 등록
+									 */
 
-									publishOwnFeed(true); //내 화면 설정
-									
-									if(msg["publishers"]) { //기존 방에 있는 사람들 정보
+									/*
+									밑에 if문은 새로 들어온 사람이 기존 방에 있던 사람들 구독하는 기능을 가진다
+									mentor는 방 입장시 항상 대기자가 없으므로 mentor가 if문에서 newRemoteFeed()할 필요는 없다
+									subscriber가 입장하면 방에 있던 사람 중 mentor만 구독하면 된다.
+									*/
+									if(msg["publishers"]) { 
 										var list = msg["publishers"];
-										
-										console.log("밑에 list는 기존 방에 있는 사람들 정보여야 한다")
-										console.log(list);
-
 										Janus.debug("Got a list of available publishers/feeds:", list);
 										for(var f in list) {
 											var id = list[f]["id"];
@@ -149,41 +186,34 @@ $(document).ready(function() {
 											var audio = list[f]["audio_codec"];
 											var video = list[f]["video_codec"];
 											Janus.debug("  >> [" + id + "] " + display + " (audio: " + audio + ", video: " + video + ")");
-											newRemoteFeed(id, display, audio, video); 
-											/*
-											newRemoteFeed() 메소드 설정 항목
-											var subscribe = {
-												request: "join",
-												room: room,
-												ptype: "subscriber",
-												feed: id,
-												private_id: mypvtid
-											};
 
-											방금 방에 입장한 사람을 기준으로 기존 방에 존재하는 사람들을 구독하겠다
-											feed: id를 subscriber한다
-											*/
+											if(display === "mentor"){
+												console.log("현재 입장자는 mentor만 구독")
+												console.log(display)
+												newRemoteFeed(id, display, audio, video);
+											}
 										}
 									}
 								} else if(event === "destroyed") {
 									// The room has been destroyed
 									Janus.warn("The room has been destroyed!");
 									window.location.reload();
-									/* bootbox.alert("The room has been destroyed", function() {
+									/*bootbox.alert("The room has been destroyed", function() {
 										window.location.reload();
-									}); */
-								} else if(event === "event") { //기존 사람들이 입장하는 사람을 구독
+									});*/
+
+								/**
+								밑에 if문은 기존 방에 있던 사람의 입장에서 누군가 들어오거나 나갈 때 
+								발생하는 이벤트.
+								1)mentor : 들어오는 모든 사람들 구독
+								2)subscriber : 들어오는 사람들 모두 구독할 필요 없음
+								*/
+
+								} else if(event === "event") { //기존 방에 있던 사람들이 받는 event
+									alert("event == event");
 									// Any new feed to attach to?
-
-									console.log("event => event 부분의 msg");
-									console.log(msg);
-
-									if(msg["publishers"]) {
+									if(msg["publishers"]) { //기존 방에 있던 사람이 새로 들어온 사람들을 구독
 										var list = msg["publishers"];
-
-										console.log("밑에 list는 방에 입장한 사람의 정보여야 한다");
-										console.log(list);
-
 										Janus.debug("Got a list of available publishers/feeds:", list);
 										for(var f in list) {
 											var id = list[f]["id"];
@@ -191,7 +221,21 @@ $(document).ready(function() {
 											var audio = list[f]["audio_codec"];
 											var video = list[f]["video_codec"];
 											Janus.debug("  >> [" + id + "] " + display + " (audio: " + audio + ", video: " + video + ")");
-											newRemoteFeed(id, display, audio, video);
+
+											/* if(usermode === "0"){
+												if(id === "mentor") newRemoteFeed(id, display, audio, video);
+											}else if(usermode === "1"){
+												newRemoteFeed(id, display, audio, video);
+											}else{
+												console.log("event newRemoteFeed error")
+											} */
+
+											if(id === "mentor") newRemoteFeed(id, display, audio, video);
+
+											/*
+											왜 if(mentor == "1") 가 아닌가?
+											현재 방 입장 자가 누구인지 알 수 있는 방법이 없다.
+											*/
 										}
 									} else if(msg["leaving"]) {
 										// One of the publishers has gone away?
@@ -237,13 +281,12 @@ $(document).ready(function() {
 									} else if(msg["error"]) {
 										if(msg["error_code"] === 426) {
 											// This is a "no such room" error: give a more meaningful description
-											
-											/*bootbox.alert(
+											alert(
 												"<p>Apparently room <code>" + room + "</code> (the one this demo uses as a test room) " +
 												"does not exist...</p><p>Do you have an updated <code>janus.plugin.videoroom.jcfg</code> " +
 												"configuration file? If not, make sure you copy the details of room <code>" + room + "</code> " +
 												"from that sample in your current configuration file, then restart Janus and try again."
-											);*/
+											);
 										} else {
 											//bootbox.alert(msg["error"]);
 										}
@@ -273,8 +316,12 @@ $(document).ready(function() {
 										'</div>');
 								}
 							}
-						},
-						onlocalstream: function(stream) { //WebRTC 연결이 생성된 후 사용자의 카메라/마이크 스트림이 성공적으로 로드되었을 때 호출
+						},  
+						/*
+						로컬 스트림이 성공적으로 생성되거나 캡처된 후 호출 :
+						사용자가 자신의 비디오와 오디오를 캡처한 미디어 스트림입니다. 예를 들어, 사용자가 웹캠을 활성화하거나 마이크를 켤 때 생성되는 스트림입니다.
+						*/
+						onlocalstream: function(stream) {
 							Janus.debug(" ::: Got a local stream :::", stream);
 							mystream = stream;
 							$('#videojoin').hide();
@@ -282,15 +329,12 @@ $(document).ready(function() {
 							if($('#myvideo').length === 0) {
 								$('#videolocal').append('<video class="rounded centered" id="myvideo" width="100%" height="100%" autoplay playsinline muted="muted"/>');
 								// Add a 'mute' button
-								/* $('#videolocal').append('<button class="btn btn-warning btn-xs" id="mute" style="position: relative; bottom: 0px; left: 0px; margin: 15px;">Mute</button>'); */
+								/* $('#videolocal').append('<button class="btn btn-warning btn-xs" id="mute" style="position: absolute; bottom: 0px; left: 0px; margin: 15px;">Mute</button>'); */
 								$('#mute').click(toggleMute);
-								if($('#unpublish').length === 0){
-									$('#publish').remove();
-									$('#publishDiv').append('<button id="unpublish">Unpublish</button>');
-									$('#unpublish').click(unpublishOwnFeed);
-								}
+								// Add an 'unpublish' button
+								/* $('#videolocal').append('<button class="btn btn-warning btn-xs" id="unpublish" style="position: absolute; bottom: 0px; right: 0px; margin: 15px;">Unpublish</button>'); */
+								$('#unpublish').click(unpublishOwnFeed);
 							}
-							$('#publisher').html(username);	
 							$('#publisher2').html(username);
 							Janus.attachMediaStream($('#myvideo').get(0), stream);
 							$("#myvideo").get(0).muted = "muted";
@@ -321,18 +365,22 @@ $(document).ready(function() {
 								$('#myvideo').removeClass('hide').show();
 							}
 						},
+						/*
+						onremotestream: function(stream)은 원격 피어로부터 미디어 스트림이 도착했을 때 호출되는 콜백 함수입니다.
+
+						이 함수는 원격 피어(WebRTC 연결의 상대방)에서 전송된 오디오 및 비디오 데이터를 로컬 브라우저에서 표시하거나 처리할 때 사용됩니다.
+						*/
 						onremotestream: function(stream) {
 							// The publisher stream is sendonly, we don't expect anything here
 						},
+						/*
+						이 함수는 스트림이 중단되었을 때 사용자의 UI와 상태를 초기화하는 역할을 합니다. 이후 사용자가 원한다면 Publish 버튼을 통해 새로운 스트림을 퍼블리시할 수 있습니다.
+						*/
 						oncleanup: function() {
 							Janus.log(" ::: Got a cleanup notification: we are unpublished now :::");
 							mystream = null;
-							 
-							if($('#publish').length === 0){
-								$('#unpublish').remove();
-								$('#publishDiv').html('<button id="publish">Publish</button>'); 
-								$('#publish').click(function() { publishOwnFeed(true); });
-							}
+							/* $('#videolocal').html('<button id="publish" class="btn btn-primary">Publish</button>'); */
+							$('#publish').click(function() { publishOwnFeed(true); });
 							$("#videolocal").parent().parent().unblock();
 							$('#bitrate').parent().parent().addClass('hide');
 							$('#bitrate a').unbind('click');
@@ -340,11 +388,12 @@ $(document).ready(function() {
 					});
 			},
 			error: function(error) {
-				Janus.error(error);
+				Janus.error(error); 
 				window.location.reload();
-				/* bootbox.alert(error, function() {
+				/*
+				bootbox.alert(error, function() {
 					window.location.reload();
-				}); */
+				});*/
 			},
 			destroyed: function() {
 				window.location.reload();
@@ -353,22 +402,24 @@ $(document).ready(function() {
 	}});
 });
 
-//방에 조인
-function joinUser() {
-	var register = { 
-		"request": "join", 
-		"room": room, 
-		"ptype": "publisher", 
-		"display": username 
-	};
-				
-	sfutest.send({"message": register, success:function(result){
-		console.log(result);
-	}});
+
+//방 조인
+function registerUsername() {
+
+	console.log("room:"+ room);
+	console.log("parseInt(room):"+parseInt(room));
+
+	
+	var register = { "request": "join", "room": parseInt(room), "ptype": "publisher", "display": username }; 
+	
+	sfutest.send({
+		"message": register, success: () => {}
+	});
 }
 
+
 // [jsflux] 방 참여자
-function participantsList(room){
+/* function participantsList(room){
     var listHtml = "";
     var roomPQuery = {
         "request" : "listparticipants",
@@ -387,36 +438,58 @@ function participantsList(room){
         listHtml += '</table>';
         $("#room_" + room).html(listHtml);
     }});
-}
+} */
 
 // [jsflux] 내 화상화면 시작
 function publishOwnFeed(useAudio) {
+	
+	$('#publish').css('display','none');
+	$('#unpublish').css('display','block');
 
-	$('#publish').attr('disabled', true).unbind('click');
-
+	
 	sfutest.createOffer(
+	{
+		media: { audioRecv: false, videoRecv: false, audioSend: useAudio, videoSend: true },	
+		simulcast: doSimulcast,
+		simulcast2: doSimulcast2,
+		success: function(jsep) {
+			Janus.debug("Got publisher SDP!", jsep);
+			var publish = { request: "configure", audio: useAudio, video: true };
+			//var publish = publishset
+			sfutest.send({ message: publish, jsep: jsep });
+		},
+		error: function(error) {
+			Janus.error("WebRTC error:", error);
+			if(useAudio) {
+					publishOwnFeed(false);
+			} else {
+				//bootbox.alert("WebRTC error... " + error.message);
+				$('#publish').removeAttr('disabled').click(function() { publishOwnFeed(true); });
+			}
+		}
+	});
+}
+
+//화면 공유
+async function publishOwnFeed2(useAudio) {
+	// Publish our stream
+	//$('#publish').attr('disabled', true).unbind('click');
+
+	try{
+		const screenStream = await navigator.mediaDevices.getDisplayMedia({
+         video: true,
+         audio: false,
+      });
+	
+		sfutest.createOffer(
 		{
-			// Add data:true here if you want to publish datachannels as well
-			//media: { audioRecv: true, videoRecv: true, audioSend: useAudio, videoSend: true },	// Publishers are sendonly
-			media: { audioRecv: false, videoRecv: false, audioSend: useAudio, videoSend: true },	// 
-			// If you want to test simulcasting (Chrome and Firefox only), then
-			// pass a ?simulcast=true when opening this demo page: it will turn
-			// the following 'simulcast' property to pass to janus.js to true
+			stream: screenStream,
+			media: { audioRecv: false, videoRecv: false, audioSend: useAudio, videoSend: true },	
 			simulcast: doSimulcast,
 			simulcast2: doSimulcast2,
 			success: function(jsep) {
 				Janus.debug("Got publisher SDP!", jsep);
-				var publish = { request: "configure", audio: useAudio, video: true };
-				// You can force a specific codec to use when publishing by using the
-				// audiocodec and videocodec properties, for instance:
-				// 		publish["audiocodec"] = "opus"
-				// to force Opus as the audio codec to use, or:
-				// 		publish["videocodec"] = "vp9"
-				// to force VP9 as the videocodec to use. In both case, though, forcing
-				// a codec will only work if: (1) the codec is actually in the SDP (and
-				// so the browser supports it), and (2) the codec is in the list of
-				// allowed codecs in a room. With respect to the point (2) above,
-				// refer to the text in janus.plugin.videoroom.jcfg for more details
+				var publish = { request: "configure", audio: useAudio, video: true }; //미디어 송출 설정
 				sfutest.send({ message: publish, jsep: jsep });
 			},
 			error: function(error) {
@@ -429,22 +502,9 @@ function publishOwnFeed(useAudio) {
 				}
 			}
 		});
-}
-
-let toggle = true;
-function play(){
-$("#play_stop").on("click",function(){
-	
-	if(toggle){
-		$(this).text("중지")
-		toggle = false;
-		unpublishOwnFeed();
-	}else{
-		$(this).text("실행");
-		toggle = true;
-		publishOwnFeed(true);
-	}
-})
+	} catch (err) {
+      console.error("화면 공유 실패:", err);
+   }
 }
 
 // [jsflux] 음소거
@@ -463,11 +523,9 @@ function toggleMute() {
 function unpublishOwnFeed() {
 	// Unpublish our stream
 	//$('#unpublish').attr('disabled', true).unbind('click');
-	//$('#publish').removeAttr('disabled')
-	//$('#publish').css('display','block');
-	//$('#unpublish').css('display','none');
 
-	$('#unpublish').attr('disabled', true).unbind('click');
+	$('#publish').css('display','block');
+	$('#unpublish').css('display','none');
 
 	var unpublish = { request: "unpublish" };
 	sfutest.send({ message: unpublish });
@@ -475,13 +533,36 @@ function unpublishOwnFeed() {
 
 // [jsflux] 새로운 유저 들어왔을때
 function newRemoteFeed(id, display, audio, video) {
+	alert("newRemoteFeed호출 id:"+id+" ,video:"+video)
 	// A new feed has been published, create a new plugin handle and attach to it as a subscriber
 	var remoteFeed = null;
+
+	var ptypeSet = null;
+
+	/**
+	 * newRemoteFeed()를 호출 시 이미 앞에서 판매자인 경우와 구매자인 경우를 나눴다 
+	 * 여기서도 판매자인 경우 ptype과 구매자인 경우 ptype을 나눠서 입력
+	 * 
+	 * usermode가 0 구매자인 경우 :
+	 * mentor인 경우만 newRemoteFeed()가 호출 된다. mentor를 publihser로 설정
+	 * 
+	 * usermode가 1 판매자인 경우 :
+	 * mentor는 모든 사람을 subscriber로 구독
+	 */
+	if(usermode === "0"){ 
+		ptypeSet = "publisher";
+	}else if(usermode === "1"){
+		ptypeSet = "subscriber";
+	}else{
+		console.log("newRemoteFeed ptype error")
+	}
+
 	janus.attach(
 		{
 			plugin: "janus.plugin.videoroom",
 			opaqueId: opaqueId,
 			success: function(pluginHandle) {
+				
 				remoteFeed = pluginHandle;
 				remoteFeed.simulcastStarted = false;
 				Janus.log("Plugin attached! (" + remoteFeed.getPlugin() + ", id=" + remoteFeed.getId() + ")");
@@ -514,6 +595,7 @@ function newRemoteFeed(id, display, audio, video) {
 				//bootbox.alert("Error attaching plugin... " + error);
 			},
 			onmessage: function(msg, jsep) {
+				alert("밑에 onmessage");
 				Janus.debug(" ::: Got a message (subscriber) :::", msg);
 				var event = msg["videoroom"];
 				Janus.debug("Event: " + event);
@@ -539,7 +621,6 @@ function newRemoteFeed(id, display, audio, video) {
 						}
 						Janus.log("Successfully attached to feed " + remoteFeed.rfid + " (" + remoteFeed.rfdisplay + ") in room " + msg["room"]);
 						$('#remote'+remoteFeed.rfindex).removeClass('hide').html(remoteFeed.rfdisplay).show();
-						//$('#videoremotename'+remoteFeed.rfindex).text(remoteFeed.rfid);
 					} else if(event === "event") {
 						// Check if we got a simulcast-related event from this publisher
 						var substream = msg["substream"];
@@ -588,16 +669,17 @@ function newRemoteFeed(id, display, audio, video) {
 				// The subscriber stream is recvonly, we don't expect anything here
 			},
 			onremotestream: function(stream) {
+				alert("밑에 onremotestream")
 				Janus.debug("Remote feed #" + remoteFeed.rfindex + ", stream:", stream);
 				var addButtons = false;
 				if($('#remotevideo'+remoteFeed.rfindex).length === 0) {
 					addButtons = true;
 					// No remote video yet
-					$('#videoremote'+remoteFeed.rfindex).append('<video class="rounded centered" id="waitingvideo' + remoteFeed.rfindex + '" width="100%" height="250px" />');
-					$('#videoremote'+remoteFeed.rfindex).append('<video class="rounded centered relative hide" id="remotevideo' + remoteFeed.rfindex + '" width="100%" height="250px" autoplay playsinline/>');
-					$('#videoremote'+remoteFeed.rfindex).before(
-						'<span class="label label-primary hide" id="curres'+remoteFeed.rfindex+'" style="position: relative; top: 5px; left: 0px; margin-right: 5px;"></span>' +
-						'<span class="label label-info hide" id="curbitrate'+remoteFeed.rfindex+'" style="position: relative; top: 5px; right: 0px; margin-left: 5px;"></span>');
+					$('#videoremote'+remoteFeed.rfindex).append('<video class="rounded centered" id="waitingvideo' + remoteFeed.rfindex + '" width="100%" height="100%" />');
+					$('#videoremote'+remoteFeed.rfindex).append('<video class="rounded centered relative hide" id="remotevideo' + remoteFeed.rfindex + '" width="100%" height="100%" autoplay playsinline/>');
+					$('#videoremote'+remoteFeed.rfindex).append(
+						'<span class="label label-primary hide" id="curres'+remoteFeed.rfindex+'" style="position: absolute; bottom: 0px; left: 0px; margin: 15px;"></span>' +
+						'<span class="label label-info hide" id="curbitrate'+remoteFeed.rfindex+'" style="position: absolute; bottom: 0px; right: 0px; margin: 15px;"></span>');
 					// Show the video, hide the spinner and show the resolution when we get a playing event
 					$("#remotevideo"+remoteFeed.rfindex).bind("playing", function () {
 						if(remoteFeed.spinner)
@@ -680,6 +762,7 @@ function getQueryStringValue(name) {
 }
 
 // Helpers to create Simulcast-related UI, if enabled
+//해상도, FPS(프레임속도) 버튼 생성 적용
 function addSimulcastButtons(feed, temporal) {
 	var index = feed;
 	$('#remote'+index).parent().append(
@@ -766,6 +849,7 @@ function addSimulcastButtons(feed, temporal) {
 		});
 }
 
+//해상도, FPS(프레임속도) 변경 후 적용
 function updateSimulcastButtons(feed, substream, temporal) {
 	// Check the substream
 	var index = feed;
@@ -803,5 +887,3 @@ function updateSimulcastButtons(feed, substream, temporal) {
 		$('#tl' + index + '-0').removeClass('btn-primary btn-success').addClass('btn-primary');
 	}
 }
-
-
