@@ -357,13 +357,16 @@ $(document).ready(function() {
 
 //방에 조인
 function joinUser() {
+	
 	var register = { 
 		"request": "join", 
 		"room": room, 
 		"ptype": "publisher", 
 		"display": username 
 	};
-				
+	
+	//"ptype": "subscriber"로 설정시 아무런 화면도 뜨지 않는다
+	
 	sfutest.send({"message": register, success:function(result){
 		console.log(result);
 	}});
@@ -396,30 +399,47 @@ function publishOwnFeed(useAudio) {
 
 	$('#publish').css('display','none');
 	$('#unpublish').css('display','block');
+	
+	var mediaset = null;
+	var publishset = null;
+	if(usermode === "1"){ //판매자
+		mediaset = {
+			audioRecv : false,
+			videoRecv : false,
+			audioSend : true,
+			videoSend : true
+		},
+
+		publishset = {
+			request : "configure",
+			audio : true,
+			video : true
+		}			
+	}else{ //구매자
+		mediaset = {
+			audioRecv : true,
+			videoRecv : true,
+			audioSend : false,
+			videoSend : false
+		},
+
+		publishset = {
+			request : "configure",
+			audio : false,
+			video : false
+		}	
+	}
 
 	sfutest.createOffer(
 		{
-			// Add data:true here if you want to publish datachannels as well
-			//media: { audioRecv: true, videoRecv: true, audioSend: useAudio, videoSend: true },	// Publishers are sendonly
-			media: { audioRecv: false, videoRecv: false, audioSend: useAudio, videoSend: true },	// 
-			// If you want to test simulcasting (Chrome and Firefox only), then
-			// pass a ?simulcast=true when opening this demo page: it will turn
-			// the following 'simulcast' property to pass to janus.js to true
+			/* media: { audioRecv: false, videoRecv: false, audioSend: useAudio, videoSend: true }, */
+			media : mediaset,
 			simulcast: doSimulcast,
 			simulcast2: doSimulcast2,
 			success: function(jsep) {
 				Janus.debug("Got publisher SDP!", jsep);
-				var publish = { request: "configure", audio: useAudio, video: true };
-				// You can force a specific codec to use when publishing by using the
-				// audiocodec and videocodec properties, for instance:
-				// 		publish["audiocodec"] = "opus"
-				// to force Opus as the audio codec to use, or:
-				// 		publish["videocodec"] = "vp9"
-				// to force VP9 as the videocodec to use. In both case, though, forcing
-				// a codec will only work if: (1) the codec is actually in the SDP (and
-				// so the browser supports it), and (2) the codec is in the list of
-				// allowed codecs in a room. With respect to the point (2) above,
-				// refer to the text in janus.plugin.videoroom.jcfg for more details
+				/* var publish = { request: "configure", audio: useAudio, video: true }; */
+				var publish = publishset
 				sfutest.send({ message: publish, jsep: jsep });
 			},
 			error: function(error) {

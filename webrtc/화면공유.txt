@@ -1,0 +1,38 @@
+
+
+//화면 공유
+async function publishOwnFeed2(useAudio) {
+	// Publish our stream
+	//$('#publish').attr('disabled', true).unbind('click');
+
+	try{
+		const screenStream = await navigator.mediaDevices.getDisplayMedia({
+         video: true,
+         audio: false,
+      });
+	
+		sfutest.createOffer(
+		{
+			stream: screenStream,
+			media: { audioRecv: false, videoRecv: false, audioSend: useAudio, videoSend: true },	
+			simulcast: doSimulcast,
+			simulcast2: doSimulcast2,
+			success: function(jsep) {
+				Janus.debug("Got publisher SDP!", jsep);
+				var publish = { request: "configure", audio: useAudio, video: true }; //미디어 송출 설정
+				sfutest.send({ message: publish, jsep: jsep });
+			},
+			error: function(error) {
+				Janus.error("WebRTC error:", error);
+				if(useAudio) {
+					 publishOwnFeed(false);
+				} else {
+					//bootbox.alert("WebRTC error... " + error.message);
+					$('#publish').removeAttr('disabled').click(function() { publishOwnFeed(true); });
+				}
+			}
+		});
+	} catch (err) {
+      console.error("화면 공유 실패:", err);
+   }
+}
