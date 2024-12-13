@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>방송 상세 페이지</title>
+
+<script type="text/javascript"
+src="https://cdnjs.cloudflare.com/ajax/libs/webrtc-adapter/6.4.0/adapter.min.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script type="text/javascript"
+src="https://cdnjs.cloudflare.com/ajax/libs/jquery.blockUI/2.70/jquery.blockUI.min.js"></script>
+
+<!-- <script type="text/javascript"
+src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/js/bootstrap.min.js"></script> -->
+<!-- <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bootbox.js/5.4.0/bootbox.min.js"></script> -->
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/spin.js/2.3.2/spin.min.js"></script>
+<!-- <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.4/toastr.min.js"></script> -->
+
+<script type="text/javascript" src="./janus.js"></script>
+<script type="text/javascript" src="./detailMeeting.js?ver=12"></script>
+
+<link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@100..900&display=swap" rel="stylesheet">
+<style>
+/* 페이지 전체 스타일 */
+body {
+    font-family: 'Pretendard', sans-serif;
+    font-size: .875rem;
+    font-weight: 500;
+    background-color: #ffffff;
+    color: #333333;
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    gap: 20px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    height: 100vh;
+    box-sizing: border-box;
+}
+
+.left-side, .broadcast-detail, .participant-section {
+    /* flex: 1; */
+    overflow-y: auto;
+}
+
+/* 열른쪽 스타일 (나중에 조회) */
+.left-side {
+    /* flex: 1 1 10%; */
+    width: 15%;
+    background-color: #f1f1f1;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* 방송 상세 정보 연습 스타일 */
+.broadcast-container {
+    width: 700px;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    gap: 20px;
+}
+
+/* 방송 화면 스타일 */
+.broadcast-detail {
+    flex: 9;
+    background-color: #f8f9fa;
+    padding:20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transition: flex 0.3s ease;
+}
+
+.broadcast-detail img {
+    width: 100%;
+    height: auto;
+    border-radius: 10px;
+}
+
+/* 방송 정보 스타일 */
+.broadcast-info {
+    flex: 2;
+    background-color: #ffffff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: nowrap;
+}
+
+.broadcaster-details {
+    flex: 1;
+    min-width: 20px;
+}
+
+.broadcast-title h1 {
+    font-size: 2em;
+    color: #4b0082;
+    margin-bottom: 20px;
+}
+
+.profile-banner {
+    display: flex;
+    align-items: center;
+    flex-wrap: nowrap;
+}
+
+.profile-image {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    margin-right: 10px;
+}
+
+.broadcaster-info h2 {
+    margin: 0;
+}
+
+.recoding-buttons {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.recoding-buttons button {
+    padding: 10px;
+    min-width: 100px;
+    background-color: #4b0082;
+    color: #ffffff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.2s;
+}
+
+button {
+    padding: 10px;
+    min-width: 100px;
+    background-color: #4b0082;
+    color: #ffffff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.2s;
+}
+
+.recoding-buttons button:hover {
+    background-color: #6a0dad;
+    transform: scale(1.05);
+}
+
+button:hover {
+    background-color: #6a0dad;
+    transform: scale(1.05);
+}
+
+/* 참가자 개인 화면 스타일 */
+.participant-section {
+    flex: 1;
+    min-width: 300px;
+    background-color: #e9ecef;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto auto auto;
+    gap: 20px;
+    transition: max-height 0.3s ease, opacity 0.3s ease;
+}
+
+.participant-view {
+    background-color: #ffffff;
+    border-radius: 10px;
+    padding: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    /* display: flex; */
+    align-items: center;
+    justify-content: center;
+    height: 350px;
+}
+
+/* .participant-view img {
+    width: 100%;
+    height: auto;
+    border-radius: 10px;
+} */
+
+/* 접기/펼치기 버튼 스타일 */
+.participant-toggle-button {
+    padding: 10px;
+    min-width: 100px;
+    background-color: #4b0082;
+    color: #ffffff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: transform 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.participant-toggle-button:hover {
+    background-color: #6a0dad;
+    transform: scale(1.1);
+}
+
+.participant-section.collapsed {
+    max-height: 0;
+    opacity: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+.participant-view .videoremote{
+    padding: 15px;
+}
+</style>
+
+</head>
+<body>
+    <!-- 레프트 사이드 -->
+    <div class="left-side">
+        <!-- 빈 공간 -->
+    </div>
+
+    <!-- 방송 상세 정보 -->
+    <div class="broadcast-container">
+        <!-- 방송 화면 -->
+        <div class="broadcast-detail">
+            <div class="broadcast-image">
+                <div id="mentor"></div>
+                <div id="recodingTxt" style="display:none;font-weight: bold;">Rcoding now ...</div>
+            </div>
+        </div>
+
+        <!-- 방송 정보 -->
+        <div class="broadcast-info">
+            <div class="broadcaster-details">
+                <div class="broadcast-title">
+                    <h1>방송 제목</h1>
+                </div>
+                <div class="profile-banner">
+                    <img src="/images/profile.jpg" alt="방송중인 사람 프로필 이미지" class="profile-image">
+                    <div class="broadcaster-info">
+                        <h2><span class="label label-primary hide" id="publisher2" style="color:red"></span></h2>
+                        <p>사용자 등급: 키워드</p>
+                        <div class="keywords">키워드: 방송, 뉴스, 게임</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 녹화 및 화면공유 -->
+            <div class="recoding-buttons">
+                <div id="menuBtns" style="display: none;">
+                    <a href="#" style="text-decoration: none;padding: 3px;" onclick="startRecoding()"><img src="../img/recoding.gif" style="height: 20px;width: 30px;" alt="녹화 시작" id="startRec"></a>
+                    <a href="#" style="text-decoration: none;padding: 3px;" onclick="stopRecoding()"><img src="../img/recodingStop.png" style="height: 20px;width: 30px;display:none" alt="녹화 중지" id="stopRec"></a>
+                    <a href="#" style="text-decoration: none;padding: 3px;margin: 3px;" onclick="startShare()"><img src="../img/share.png" style="height: 20px;width: 30px;" alt="화면 공유" id="startShare"></a>
+                </div>
+            <button class="participant-toggle-button" onclick="toggleParticipants()">접기◀</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 참가자 개인 화면 -->
+    <div class="participant-section">
+        <div class="participant-view">
+            <div>
+                <h3>My Video<span class="label label-info hide" id="self" style="color:red"></span></h3>
+            </div>
+           <div id="videolocal"></div>
+        </div>
+        
+        <div class="participant-view">
+            <!-- <div>
+                <h3>Remote Video #3 <span class="label label-info hide" id="remote3" style="color:red"></span></h3>
+            </div> -->
+            <div class="videoremote" id="videoremote1"></div>
+        </div>
+        
+        <div class="participant-view">
+            <div class="videoremote" id="videoremote2"></div>
+        </div>
+        
+        <div class="participant-view">
+            <div class="videoremote" id="videoremote3"></div>
+        </div>
+
+        <div class="participant-view">
+           <div class="videoremote" id="videoremote4"></div>
+        </div>
+
+        <div class="participant-view">
+            <div class="videoremote" id="videoremote5"></div>
+        </div>
+
+        <div class="participant-view">
+            <div class="videoremote" id="videoremote6"></div>
+        </div>
+    </div>
+
+    <script>
+        if(usermode === "1") {
+           var menuBtns = document.getElementById("menuBtns");
+           menuBtns.style.display = 'block';
+        }
+
+        function toggleParticipants() {
+            const participantSection = document.querySelector('.participant-section');
+    
+            if (participantSection.classList.contains('collapsed')) {
+                //Participantssection.style.display = 'block';
+                participantSection.classList.remove('collapsed');
+                broadcastDetail.style.flex = '8';
+                document.querySelector('.participant-toggle-button').innerHTML = '접기◀';
+            } else {
+                //Participantssection.style.display = 'none';
+                participantSection.classList.add('collapsed');
+                broadcastDetail.style.flex = '11';
+                document.querySelector('.participant-toggle-button').innerHTML = '▶펼치기';
+            }
+        }
+    
+        let mediaRecorder;
+        let recordedChunks = [];
+    
+        // 카메라 스트림 가져오기 - 카메라 켜기 
+        navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+            .then(stream => {
+                //preview.srcObject = stream; //<video> 태그에 실시간으로 보여줌
+                /* 
+                MediaRecorder 설정 <- 녹화 기능
+                WebRTC - 실시간 전송 , RTCPeerConnection, RTCDataChannel
+                MediaRecorder - 비디오/오디오 데이터를 파일로 저장, 실시간 불가능
+                */
+                mediaRecorder = new MediaRecorder(stream); //실시간 미디어 스트림을 녹화할 수 있게 해줍니다.
+    
+                // 녹화 데이터 처리
+                mediaRecorder.ondataavailable = event => {
+                  if (event.data.size > 0) {
+                      recordedChunks.push(event.data);
+                      console.log(recordedChunks)
+                      // 서버로 전송 (WebSocket 또는 HTTP POST 사용)
+                      //sendToServer(event.data);
+                  }
+                };
+    
+                mediaRecorder.onstart = () => {
+                  alert("녹화가 시작되었습니다.")
+                  rectext.style.display = "inline";
+                  preview.play() = true;
+                }
+    
+                mediaRecorder.onstop = () => {
+                    /*  
+                    모든 데이터 병합 후 다운로드 - 녹화된 파일 다운
+                    녹화를 멈추면 recordedChunks 배열의 데이터를 병합하여 Blob 객체를 만듭니다.
+                    Blob을 URL로 변환하고, 다운로드 링크를 생성해 사용자가 녹화된 파일을 다운로드할 수 있게 합니다.
+                    */
+                    const blob = new Blob(recordedChunks, { type: 'video/webm' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    //a.style.display = 'none';
+                    a.href = url;
+                    a.download = 'recorded-video.webm';
+                    document.body.appendChild(a);
+                    a.click();
+                    URL.revokeObjectURL(url);
+                    preview.pause();
+                    preview.currentTime = 0;
+                    preview.style.display = "none";
+                    rectext.style.display = "none";
+                };
+            });
+    
+        function startRecoding(){
+    
+            event.preventDefault();
+            //start명령어는 onstart를 호출하는데 onstart메소드는 다른 처리를 하기 위해서고 start명령어만으로 바로 녹화는 실행된다.
+            console.log("Recording started...");
+            var recodingTxt = document.getElementById("recodingTxt");
+            recodingTxt.style.display = 'inline';
+    
+            var startRec = document.getElementById("startRec");
+            startRec.style.display = 'none';
+            //this.style.display = 'none';
+    
+            var stopRect = document.getElementById("stopRec");
+            stopRect.style.display = 'inline';
+    
+            recordedChunks = [];
+            mediaRecorder.start();  
+        }
+    
+        function stopRecoding(){
+            event.preventDefault();
+            
+            var recodingTxt = document.getElementById("recodingTxt");
+            recodingTxt.style.display = 'none';
+            
+            var startRec = document.getElementById("startRec");
+            startRec.style.display = 'inline';
+            
+            var stopRect = document.getElementById("stopRec");
+            stopRect.style.display = 'none';
+            
+            mediaRecorder.stop();
+        }
+
+        function startShare(){
+            event.preventDefault();
+
+            /*
+            var startShare = document.getElementById("startShare");
+            var stopShare = document.getElementById("stopShare");
+
+            startShare.style.display = 'none';
+            stopShare.style.display = 'inline';*/
+
+            shareScreen(true)
+        }
+
+        function stopShare(){
+            alert("stop")
+            event.preventDefault();
+
+            var startShare = document.getElementById("startShare");
+            var stopShare = document.getElementById("stopShare");
+
+            startShare.style.display = 'inline';
+            stopShare.style.display = 'none';
+        }
+    </script>
+</body>
+</html>
