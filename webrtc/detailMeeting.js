@@ -426,8 +426,7 @@ async function shareScreen(useAudio) {
 			track.onended = () => {
 				alert("공유 정지");
 				 console.log('화면 공유가 중지되었습니다.');
-				 // 화면 공유 종료 후 추가 로직을 처리할 수 있습니다.
-
+				 
 				 //publishOwnFeed(true); //내 화면 설정
 				 myvideo.srcObject = originalStream;
 			};
