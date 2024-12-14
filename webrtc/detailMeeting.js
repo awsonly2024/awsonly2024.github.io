@@ -429,6 +429,10 @@ async function shareScreen(useAudio) {
 				 
 				 //publishOwnFeed(true); //내 화면 설정
 				 myvideo.srcObject = originalStream;
+				 window.location.reload();
+
+				 //sfutest.send({message : "stopSharing" });
+
 			};
 	  });
 
@@ -564,6 +568,7 @@ function newRemoteFeed(id, display, audio, video) {
 			},
 			onmessage: function(msg, jsep) {
 				Janus.debug(" ::: Got a message (subscriber) :::", msg);
+				
 				var event = msg["videoroom"];
 				Janus.debug("Event: " + event);
 				if(msg["error"]) {
@@ -591,6 +596,11 @@ function newRemoteFeed(id, display, audio, video) {
 						//$('#videoremotename'+remoteFeed.rfindex).text(remoteFeed.rfid);
 					} else if(event === "event") {
 						// Check if we got a simulcast-related event from this publisher
+
+						
+						
+
+
 						var substream = msg["substream"];
 						var temporal = msg["temporal"];
 						if((substream !== null && substream !== undefined) || (temporal !== null && temporal !== undefined)) {
@@ -602,6 +612,8 @@ function newRemoteFeed(id, display, audio, video) {
 							// We just received notice that there's been a switch, update the buttons
 							updateSimulcastButtons(remoteFeed.rfindex, substream, temporal);
 						}
+					} else if(event === "stopSharing"){
+						alert('stopSharing')
 					} else {
 						// What has just happened?
 					}
@@ -639,12 +651,42 @@ function newRemoteFeed(id, display, audio, video) {
 			onremotestream: function(stream) {
 				Janus.debug("Remote feed #" + remoteFeed.rfindex + ", stream:", stream);
 
-				var videoremoteDiv = $('#videoremote'+remoteFeed.rfindex)
+				let mentorDiv = $('#mentor');
+				let heightSet = null;
 
-				var mentorDiv = $('#mentor');
-				var heightSet = null;
 				if(remoteFeed.rfdisplay === "mentor"){
-					//videoremoteDiv.insertAfter(mentorDiv);
+
+					/* 기존 mentor div 삭제 */
+					let mentorChildId = $('#mentor').find('.videoremote').attr('id');
+					let idNum;
+					let feedindex = remoteFeed.rfindex;
+					
+					if(mentorChildId){
+						idNum = mentorChildId.substring(11,12)
+
+						if(feedindex.toString() === idNum){
+							//alert("같다 remoteFeed.rfindex:"+feedindex+" ,idNum:"+idNum)
+						}else{
+							//alert("다르다 remoteFeed.rfindex:"+feedindex+" ,idNum:"+idNum)
+							if($('#curres'+idNum).length){
+								$('#curres'+idNum).remove();
+							}
+							if($('#curbitrate'+idNum).length){
+								$('#curbitrate'+idNum).remove();
+							}
+							if($('#videoremote'+idNum).length){
+								$('#videoremote'+idNum).remove();
+							}
+						}
+					}
+					/* 기존 mentor div 삭제 end */
+
+					if($('#videoremote'+feedindex).length === 0){
+						$("<div>", {id:'videoremote'+feedindex, class:'videoremote'}).appendTo("body")
+					}
+
+					let videoremoteDiv = $('#videoremote'+feedindex)
+
 					mentorDiv.append(videoremoteDiv)
 					heightSet = "100%";
 				}else{
@@ -653,6 +695,7 @@ function newRemoteFeed(id, display, audio, video) {
 
 				var addButtons = false;
 				if($('#remotevideo'+remoteFeed.rfindex).length === 0) {
+					
 					addButtons = true;
 					// No remote video yet
 					$('#videoremote'+remoteFeed.rfindex).hover(function(){$(this).css({"transform":"scale(1.05)","border":"2px solid #6a0ad","box-shadow":"0 4px 8px rgba(0, 0, 0, 0.1"});}, function(){$(this).css({"transform": "scale(1)","border": "none","box-shadow": "none"})})
@@ -705,11 +748,18 @@ function newRemoteFeed(id, display, audio, video) {
 				if(Janus.webRTCAdapter.browserDetails.browser === "chrome" || Janus.webRTCAdapter.browserDetails.browser === "firefox" ||
 						Janus.webRTCAdapter.browserDetails.browser === "safari") {
 					$('#curbitrate'+remoteFeed.rfindex).removeClass('hide').show();
+					
+					console.log("---------------------------------")
+					console.log($("#remotevideo"+remoteFeed.rfindex).get(0));
+
 					bitrateTimer[remoteFeed.rfindex] = setInterval(function() {
 						// Display updated bitrate, if supported
 						var bitrate = remoteFeed.getBitrate();
 						$('#curbitrate'+remoteFeed.rfindex).text(bitrate);
 						// Check if the resolution changed too
+						
+						
+
 						var width = $("#remotevideo"+remoteFeed.rfindex).get(0).videoWidth;
 						var height = $("#remotevideo"+remoteFeed.rfindex).get(0).videoHeight;
 						if(width > 0 && height > 0)
