@@ -321,7 +321,7 @@ $(document).ready(function() {
 						onremotestream: function(stream) {
 							// The publisher stream is sendonly, we don't expect anything here
 						},
-						oncleanup: function() {
+						oncleanup: function() { //자신이 나갈 때 호출
 							Janus.log(" ::: Got a cleanup notification: we are unpublished now :::");
 							mystream = null;
 							$('#videolocal').html('<button id="publish">Publish</button>');
@@ -596,10 +596,6 @@ function newRemoteFeed(id, display, audio, video) {
 						//$('#videoremotename'+remoteFeed.rfindex).text(remoteFeed.rfid);
 					} else if(event === "event") {
 						// Check if we got a simulcast-related event from this publisher
-
-						
-						
-
 
 						var substream = msg["substream"];
 						var temporal = msg["temporal"];
