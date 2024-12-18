@@ -378,7 +378,8 @@ body {
 		
 		</div>
 		<div class="chat-input">
-			<input type="text" id="message" placeholder="메시지를 입력하세요..." onkeypress="keySendMsg(event)">
+			<div id="usernamediv" style="align-items: center;text-align: center;width:80px;font-size:16px;font-weight:bold;margin-top: 10px;"></div>
+			<input type="text" style="width:380px" id="message" placeholder="메시지를 입력하세요..." onkeypress="keySendMsg(event)">
 			<button onclick="sendMessage()">전송</button>
 		</div>
 	</div>
@@ -397,6 +398,9 @@ body {
 			$('#videoremote1').hide();
 		}
 
+		var usernamediv = document.getElementById("usernamediv");
+		alert(username)
+		usernamediv.innerText = username;
 	</script>
 </body>
 </html>

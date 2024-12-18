@@ -147,6 +147,7 @@ body {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     transition: transform 0.3s;
     cursor: pointer;
+	 margin: 8px
 }
 
 /* 방송 카드 호보 시 애니메이션 */
@@ -157,12 +158,13 @@ body {
 /* 방송 이미지 스타일 */
 .broadcast-card img {
     width: 100%;
-    height: auto;
+    height: 260px;
+
 }
 
 /* 방송 정보 스타일 */
 .broadcast-info {
-    padding: 15px;
+    padding: 10px;
 }
 
 /* 방송 제목 스타일 */
@@ -183,7 +185,7 @@ body {
 .streamer-profile {
     display: flex;
     align-items: center;
-    margin-top: 15px;
+    margin: 15px;
 }
 
 .streamer-profile img {
@@ -244,63 +246,9 @@ body {
 
 <body>
 	<!-- 레프트 사이드바 -->
-	<div class="left-sidebar"
-		style="width: 15%; float: left; padding: 20px; box-sizing: border-box; background-color: #f8f9fa; height: 100vh;">
-		<h4>방송 현황</h4>
-		<div class="channel-item"
-			style="display: flex; align-items: center; margin-bottom: 15px;">
-			<img src="https://via.placeholder.com/50" alt="프로필 사진"
-				style="border-radius: 50%; margin-right: 10px;">
-			<div>
-				<div style="font-weight: bold; color: #ffffff;">스피드소닉</div>
-				<div style="font-size: 0.9em; color: #b0b3b8;">바람의나라</div>
-				<div style="color: #ff5555; font-weight: bold;">• 326</div>
-			</div>
-		</div>
-		<div class="channel-item"
-			style="display: flex; align-items: center; margin-bottom: 15px;">
-			<img src="https://via.placeholder.com/50" alt="프로필 사진"
-				style="border-radius: 50%; margin-right: 10px;">
-			<div>
-				<div style="font-weight: bold; color: #ffffff;">유히히</div>
-				<div style="font-size: 0.9em; color: #b0b3b8;">메이플스토리</div>
-				<div style="color: #ff5555; font-weight: bold;">• 165</div>
-			</div>
-		</div>
-		<div class="channel-item"
-			style="display: flex; align-items: center; margin-bottom: 15px;">
-			<img src="https://via.placeholder.com/50" alt="프로필 사진"
-				style="border-radius: 50%; margin-right: 10px;">
-			<div>
-				<div style="font-weight: bold; color: #ffffff;">두기잉</div>
-				<div style="font-size: 0.9em; color: #b0b3b8;">마비노기</div>
-				<div style="color: #ff5555; font-weight: bold;">• 89</div>
-			</div>
-		</div>
-		<div class="channel-item"
-			style="display: flex; align-items: center; margin-bottom: 15px;">
-			<img src="https://via.placeholder.com/50" alt="프로필 사진"
-				style="border-radius: 50%; margin-right: 10px;">
-			<div>
-				<div style="font-weight: bold; color: #ffffff;">미시코</div>
-				<div style="font-size: 0.9em; color: #b0b3b8;">그림/아트</div>
-				<div style="color: #ff5555; font-weight: bold;">• 81</div>
-			</div>
-		</div>
-		<div class="channel-item"
-			style="display: flex; align-items: center; margin-bottom: 15px;">
-			<img src="https://via.placeholder.com/50" alt="프로필 사진"
-				style="border-radius: 50%; margin-right: 10px;">
-			<div>
-				<div style="font-weight: bold; color: #ffffff;">미호밍</div>
-				<div style="font-size: 0.9em; color: #b0b3b8;">로스트아크</div>
-				<div style="color: #ff5555; font-weight: bold;">• 74</div>
-			</div>
-		</div>
-		<button class="btn btn-secondary" style="width: 100%;">더보기 ▾</button>
-	</div>
+	
 	<div class="main-content"
-		style="width: 80%; float: left; padding: 20px; box-sizing: border-box;">
+		style="width: 100%; float: left; padding: 20px; box-sizing: border-box;">
 
 		<div id="title"></div>
 
@@ -370,8 +318,9 @@ body {
 
 		<!-- 방송 목록 -->
 		<div class="container">
+			
 			<div class="broadcast-card">
-				<img src="../img/1_1.webp" alt="방송 이미지">
+				<img src="../img/1_1_1.jpg" alt="방송 이미지">
 				<div class="broadcast-info">
 					<h3>[레진아트] 크리스마스 키링 만들기</h3>
 					<p>앞으로 다가올 크리스마스를 미리 준비해요!</p>
@@ -386,35 +335,51 @@ body {
 			</div>
 			
 			<div class="broadcast-card">
-				<img src="../img/2_1.webp" alt="방송 이미지">
+				<img src="../img/1_2_3.png" alt="방송 이미지">
 				<div class="broadcast-info">
-					<h3>코바늘로 만드는 보송보송 댕댕이지갑</h3>
+					<h3>코바늘로 만드는 보송 댕댕이지갑</h3>
 					<p>추운 겨울 꽁꽁언 손을 녹여봅시다</p>
 				</div>
 				<div class="streamer-profile">
 					<img src="../img/usericon.jpg" alt="스트리머 프로필">
 					<div class="streamer-info">
-						<div class="nickname">요즘사람람</div>
+						<div class="nickname">요즘사람</div>
 						<div class="keywords">#선물 #정성</div>
 					</div>
 				</div>
 			</div>
+
+			<div class="broadcast-card">
+				<img src="../img/1_3_1.webp" alt="방송 이미지">
+				<div class="broadcast-info">
+					<h3>캐릭터 석고 방향제 미니 하트</h3>
+					<p>귀염 뽀짝 방향제 20여개</p>
+				</div>
+				<div class="streamer-profile">
+					<img src="../img/usericon3.png" alt="스트리머 프로필">
+					<div class="streamer-info">
+						<div class="nickname">나나</div>
+						<div class="keywords">#향수 #향기 #귀욤욤</div>
+					</div>
+				</div>
+			</div>
+
 		</div>
 		<!-- 방송 목록 끝 -->
 
 		<!-- 최신 시작 -->
 		<div class="container">
 			<div class="broadcast-card">
-				<img src="../img/2.png" alt="방송 이미지">
+				<img src="../img/2_1.webp" alt="방송 이미지">
 				<div class="broadcast-info">
-					<h3>최신</h3>
-					<p>방송 설명 및 키워드</p>
+					<h3>화장품 만들기 원데이 클래스</h3>
+					<p>2가지 품목 선택 가능</p>
 				</div>
 				<div class="streamer-profile">
-					<img src="https://via.placeholder.com/40" alt="스트리머 프로필">
+					<img src="../img/usericon4.png" alt="스트리머 프로필">
 					<div class="streamer-info">
-						<div class="nickname">스트리머 닉네임</div>
-						<div class="keywords">종합 게임, 예능</div>
+						<div class="nickname">심보미 튜터</div>
+						<div class="keywords">#아로마 #공예</div>
 					</div>
 				</div>
 			</div>
@@ -424,17 +389,31 @@ body {
 		<!-- 추천 시작 -->
 		<div class="container">
 			<div class="broadcast-card">
-
-				<img src="/static/images/seoul_banner.jpg" alt="방송 이미지">
+				<img src="../img/3_1.webp" alt="방송 이미지">
 				<div class="broadcast-info">
-					<h3>방송 제목 3</h3>
-					<p>추천</p>
+					<h3>사랑스러운 모루 인형 힐링타임!</h3>
+					<p>보들보들 부드러운 인형 만들기</p>
 				</div>
 				<div class="streamer-profile">
-					<img src="https://via.placeholder.com/40" alt="스트리머 프로필">
+					<img src="../img/usericon5.png" alt="스트리머 프로필">
 					<div class="streamer-info">
-						<div class="nickname">스트리머 닉네임</div>
-						<div class="keywords">모험 게임, 해적 이야기</div>
+						<div class="nickname">윤정 튜터</div>
+						<div class="keywords">#강아지 #토끼 #곰도리리</div>
+					</div>
+				</div>
+			</div>
+
+			<div class="broadcast-card">
+				<img src="../img/1_2_3.png" alt="방송 이미지">
+				<div class="broadcast-info">
+					<h3>코바늘로 만드는 보송 댕댕이지갑</h3>
+					<p>추운 겨울 꽁꽁언 손을 녹여봅시다</p>
+				</div>
+				<div class="streamer-profile">
+					<img src="../img/usericon.jpg" alt="스트리머 프로필">
+					<div class="streamer-info">
+						<div class="nickname">요즘사람</div>
+						<div class="keywords">#선물 #정성</div>
 					</div>
 				</div>
 			</div>
