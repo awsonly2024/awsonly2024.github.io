@@ -357,15 +357,13 @@ body {
 
 			<!-- 녹화 및 화면공유 -->
 			<div class="recoding-buttons">
-				
-					<div id="menuBtns" style="margin: 5px;">
-						<a href="" style="text-decoration: none;padding: 3px;margin: 3px;"><img src="../img/recoding.gif" style="height: 20px;width: 30px;" alt="녹화"></a>
-						<a href="" style="text-decoration: none;padding: 3px;margin: 3px;"><img src="../img/share.png" style="height: 20px;width: 30px;" alt="화면 공유"></a>
-					</div>
-					<div id="publishDiv" style="margin: 5px;"></div> <!-- start stop button -->
-					<!-- 채팅창 접기 버튼 -->
-					<button class="collapse-button" onclick="toggleChat()">접기◀</button>
+				<div id="menuBtns" style="margin: 5px;">
+					<a href="" style="text-decoration: none;padding: 3px;margin: 3px;"><img src="../img/recoding.gif" style="height: 20px;width: 30px;" alt="녹화"></a>
+					<a href="" style="text-decoration: none;padding: 3px;margin: 3px;"><img src="../img/share.png" style="height: 20px;width: 30px;" alt="화면 공유"></a>
 				</div>
+				<div id="publishDiv" style="margin: 5px;"></div> <!-- start stop button -->
+				<!-- 채팅창 접기 버튼 -->
+				<button class="collapse-button" onclick="toggleChat()">접기◀</button>
 			</div>
 		</div>
 
@@ -399,7 +397,6 @@ body {
 		}
 
 		var usernamediv = document.getElementById("usernamediv");
-		alert(username)
 		usernamediv.innerText = username;
 	</script>
 </body>
