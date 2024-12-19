@@ -336,6 +336,7 @@ body {
 		<!-- 방송 화면 -->
 		<div class="broadcast-detail">
 			<div class="panel-body" id="videolocal"></div>
+			<div id="recodingTxt" style="display:none;font-weight: bold;">Rcoding now ...</div>
 			<div class="panel-body" id="videoremote1"></div>
 		</div>
 
@@ -358,8 +359,9 @@ body {
 			<!-- 녹화 및 화면공유 -->
 			<div class="recoding-buttons">
 				<div id="menuBtns" style="margin: 5px;">
-					<a href="" style="text-decoration: none;padding: 3px;margin: 3px;"><img src="../img/recoding.gif" style="height: 20px;width: 30px;" alt="녹화"></a>
-					<a href="" style="text-decoration: none;padding: 3px;margin: 3px;"><img src="../img/share.png" style="height: 20px;width: 30px;" alt="화면 공유"></a>
+					<a href="#" style="text-decoration: none;padding: 3px;" onclick="startRecoding()"><img src="../img/recoding.gif" style="height: 20px;width: 30px;" alt="녹화 시작" id="startRec"></a>
+                    <a href="#" style="text-decoration: none;padding: 3px;" onclick="stopRecoding()"><img src="../img/recodingStop.png" style="height: 20px;width: 30px;display:none" alt="녹화 중지" id="stopRec"></a>
+					<!-- <a href="" style="text-decoration: none;padding: 3px;margin: 3px;"><img src="../img/share.png" style="height: 20px;width: 30px;" alt="화면 공유"></a> -->
 				</div>
 				<div id="publishDiv" style="margin: 5px;"></div> <!-- start stop button -->
 				<!-- 채팅창 접기 버튼 -->
@@ -398,6 +400,115 @@ body {
 
 		var usernamediv = document.getElementById("usernamediv");
 		usernamediv.innerText = username;
+
+
+		//화면 녹화
+		if(usermode === "1") {
+			var menuBtns = document.getElementById("menuBtns");
+			menuBtns.style.display = 'block';
+		}
+
+		function toggleParticipants() {
+			const participantSection = document.querySelector('.participant-section');
+	
+			if (participantSection.classList.contains('collapsed')) {
+					//Participantssection.style.display = 'block';
+					participantSection.classList.remove('collapsed');
+					broadcastDetail.style.flex = '8';
+					document.querySelector('.participant-toggle-button').innerHTML = '접기◀';
+			} else {
+					//Participantssection.style.display = 'none';
+					participantSection.classList.add('collapsed');
+					broadcastDetail.style.flex = '11';
+					document.querySelector('.participant-toggle-button').innerHTML = '▶펼치기';
+			}
+		}
+	
+		let mediaRecorder;
+		let recordedChunks = [];
+	
+		// 카메라 스트림 가져오기 - 카메라 켜기 
+		navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+			.then(stream => {
+					//preview.srcObject = stream; //<video> 태그에 실시간으로 보여줌
+					/* 
+					MediaRecorder 설정 <- 녹화 기능
+					WebRTC - 실시간 전송 , RTCPeerConnection, RTCDataChannel
+					MediaRecorder - 비디오/오디오 데이터를 파일로 저장, 실시간 불가능
+					*/
+					mediaRecorder = new MediaRecorder(stream); //실시간 미디어 스트림을 녹화할 수 있게 해줍니다.
+	
+					// 녹화 데이터 처리
+					mediaRecorder.ondataavailable = event => {
+					if (event.data.size > 0) {
+							recordedChunks.push(event.data);
+							console.log(recordedChunks)
+							// 서버로 전송 (WebSocket 또는 HTTP POST 사용)
+							//sendToServer(event.data);
+					}
+					};
+	
+					mediaRecorder.onstart = () => {
+					alert("녹화가 시작되었습니다.")
+					rectext.style.display = "inline";
+					preview.play() = true;
+					}
+	
+					mediaRecorder.onstop = () => {
+						/*  
+						모든 데이터 병합 후 다운로드 - 녹화된 파일 다운
+						녹화를 멈추면 recordedChunks 배열의 데이터를 병합하여 Blob 객체를 만듭니다.
+						Blob을 URL로 변환하고, 다운로드 링크를 생성해 사용자가 녹화된 파일을 다운로드할 수 있게 합니다.
+						*/
+						const blob = new Blob(recordedChunks, { type: 'video/webm' });
+						const url = URL.createObjectURL(blob);
+						const a = document.createElement('a');
+						//a.style.display = 'none';
+						a.href = url;
+						a.download = 'recorded-video.webm';
+						document.body.appendChild(a);
+						a.click();
+						URL.revokeObjectURL(url);
+						preview.pause();
+						preview.currentTime = 0;
+						preview.style.display = "none";
+						rectext.style.display = "none";
+					};
+			});
+	
+		function startRecoding(){
+	
+			event.preventDefault();
+			//start명령어는 onstart를 호출하는데 onstart메소드는 다른 처리를 하기 위해서고 start명령어만으로 바로 녹화는 실행된다.
+			console.log("Recording started...");
+			var recodingTxt = document.getElementById("recodingTxt");
+			recodingTxt.style.display = 'inline';
+	
+			var startRec = document.getElementById("startRec");
+			startRec.style.display = 'none';
+			//this.style.display = 'none';
+	
+			var stopRect = document.getElementById("stopRec");
+			stopRect.style.display = 'inline';
+	
+			recordedChunks = [];
+			mediaRecorder.start();  
+		}
+	
+		function stopRecoding(){
+			event.preventDefault();
+			
+			var recodingTxt = document.getElementById("recodingTxt");
+			recodingTxt.style.display = 'none';
+			
+			var startRec = document.getElementById("startRec");
+			startRec.style.display = 'inline';
+			
+			var stopRect = document.getElementById("stopRec");
+			stopRect.style.display = 'none';
+			
+			mediaRecorder.stop();
+		}
 	</script>
 </body>
 </html>
