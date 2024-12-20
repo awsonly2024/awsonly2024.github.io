@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>방송 리스트 페이지</title>
+<title>클래스 리스트 페이지</title>
 
 <!-- 기존 페이지 -->
 <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
@@ -279,15 +279,15 @@ body {
 						<form>
 							<!-- 방송 모드 선택 -->
 							<div class="form-group">
-								<label for="broadcastModeSelect">방송 모드를 선택해주세요</label> <select
+								<label for="broadcastModeSelect">클래스 모드를 선택해주세요</label> <select
 									class="form-control" id="broadcastModeSelect">
 									<option value="0">회의 모드</option>
-									<option value="1">개인방송 모드</option>
+									<option value="1">개인클래스 모드</option>
 								</select>
 							</div>
 							<!-- 방송 제목 입력 필드 추가 -->
 							<div class="form-group">
-								<label for="broadcastTitleInput">방송 번호를 입력해주세요</label> 
+								<label for="broadcastTitleInput">클래스 번호를 입력해주세요</label> 
 								<input type="text" class="form-control" id="txtRoom" placeholder="숫자만 가능합니다.">
 								<label for="broadcastTitleInput">아이디를 입력하세요</label> 
 								<input type="text" class="form-control" id="txtName" placeholder="아이디를 입력하세요">
@@ -304,23 +304,23 @@ body {
 			</div>
 		</div>
 
-		<!-- 전체방송 타이틀 추가 -->
-		<div class="page-title">전체 방송 리스트</div>
+		<!-- 전체클래스 타이틀 추가 -->
+		<div class="page-title">전체 클래스 리스트</div>
 		<!-- 구분선 추가 -->
 		<div class="divider"></div>
 
 		<!-- 탭 영역 -->
 		<div class="tabs">
-			<div class="tab" onclick="showTab(0)">방송 목록</div>
+			<div class="tab" onclick="showTab(0)">클래스 목록</div>
 			<div class="tab" onclick="showTab(1)">최신</div>
 			<div class="tab" onclick="showTab(2)">추천</div>
 		</div>
 
-		<!-- 방송 목록 -->
+		<!-- 클래스 목록 -->
 		<div class="container">
 			
 			<div class="broadcast-card">
-				<img src="../img/1_1_1.jpg" alt="방송 이미지">
+				<img src="../img/1_1_1.jpg" alt="클래스 이미지">
 				<div class="broadcast-info">
 					<h3>[레진아트] 크리스마스 키링 만들기</h3>
 					<p>앞으로 다가올 크리스마스를 미리 준비해요!</p>
@@ -335,7 +335,7 @@ body {
 			</div>
 			
 			<div class="broadcast-card">
-				<img src="../img/1_2_3.png" alt="방송 이미지">
+				<img src="../img/1_2_3.png" alt="클래스 이미지">
 				<div class="broadcast-info">
 					<h3>코바늘로 만드는 보송 댕댕이지갑</h3>
 					<p>추운 겨울 꽁꽁언 손을 녹여봅시다</p>
@@ -350,7 +350,7 @@ body {
 			</div>
 
 			<div class="broadcast-card">
-				<img src="../img/1_3_1.webp" alt="방송 이미지">
+				<img src="../img/1_3_1.webp" alt="클래스 이미지">
 				<div class="broadcast-info">
 					<h3>캐릭터 석고 방향제 미니 하트</h3>
 					<p>귀염 뽀짝 방향제 20여개</p>
@@ -365,12 +365,12 @@ body {
 			</div>
 
 		</div>
-		<!-- 방송 목록 끝 -->
+		<!-- 클래스 목록 끝 -->
 
 		<!-- 최신 시작 -->
 		<div class="container">
 			<div class="broadcast-card">
-				<img src="../img/2_1.webp" alt="방송 이미지">
+				<img src="../img/2_1.webp" alt="클래스 이미지">
 				<div class="broadcast-info">
 					<h3>화장품 만들기 원데이 클래스</h3>
 					<p>2가지 품목 선택 가능</p>
@@ -389,7 +389,7 @@ body {
 		<!-- 추천 시작 -->
 		<div class="container">
 			<div class="broadcast-card">
-				<img src="../img/3_1.webp" alt="방송 이미지">
+				<img src="../img/3_1.webp" alt="클래스 이미지">
 				<div class="broadcast-info">
 					<h3>사랑스러운 모루 인형 힐링타임!</h3>
 					<p>보들보들 부드러운 인형 만들기</p>
@@ -404,7 +404,7 @@ body {
 			</div>
 
 			<div class="broadcast-card">
-				<img src="../img/1_2_3.png" alt="방송 이미지">
+				<img src="../img/1_2_3.png" alt="클래스 이미지">
 				<div class="broadcast-info">
 					<h3>코바늘로 만드는 보송 댕댕이지갑</h3>
 					<p>추운 겨울 꽁꽁언 손을 녹여봅시다</p>
@@ -444,25 +444,25 @@ body {
 		*/
 		if(mode === "0"){ //구매자 buyer
 		
-			title1.innerText = '구매하신 방송을 시청하세요!';
+			title1.innerText = '구매하신 클래스를 시청하세요!';
 			title2.innerText = '각 분야 전문가들과 소통하며 정보를 얻어보세요. 초보 탈출 성공의 지름길!';
-			title3.value = "방송 시청하기!"; 
+			title3.value = "클래스 시청하기!"; 
 		
-			modlaTitle1.innerText = '구매자 모드'
+			modlaTitle1.innerText = 'MENTEE 모드'
 
 			dynamicButton.innerHTML = '<button type="button" class="btn btn-primary" id="btn_buyerStart" onclick="subscriber_mode()">시청 시작</button>'
 
 		}else if(mode === "1"){  //판매자 seller 
-			title1.innerText = '새로운 방송을 만들어보세요!';
-			title2.innerText = '시청자들과 소통하고 정보를 공유해보세요. 다양한 콘텐츠로 나만의 방송을 만들 수 있습니다.';
-			title3.value = '방송 만들기';
+			title1.innerText = '새로운 클래스를 만들어보세요!';
+			title2.innerText = '시청자들과 소통하고 정보를 공유해보세요. 다양한 콘텐츠로 나만의 클래스를 만들 수 있습니다.';
+			title3.value = '클래스 만들기';
 
-			modlaTitle1.innerText = '판매자 모드';
+			modlaTitle1.innerText = 'MENTOR 모드';
 
 			txtName.value = 'mentor';
 			txtName.readOnly = true;
 
-			dynamicButton.innerHTML = '<button type="button" class="btn btn-primary" id="btn_sellerStart" onclick="publisher_mode()">방송 시작</button>'
+			dynamicButton.innerHTML = '<button type="button" class="btn btn-primary" id="btn_sellerStart" onclick="publisher_mode()">클래스 시작</button>'
 		}else{}
 
 		/* cookie */
